@@ -1,6 +1,7 @@
 import React from 'react'
 import { getSessionUser } from '@/lib/actions/auth'
 import { getCourses } from '@/lib/actions/courses'
+import { getStaffMembers } from '@/lib/actions/admin'
 import { redirect } from 'next/navigation'
 import { mockDb } from '@/lib/supabase/mock'
 import AdminPanel from '@/components/AdminPanel'
@@ -14,6 +15,7 @@ export default async function AdminPage() {
   }
 
   const { data: courses = [] } = await getCourses()
+  const { data: staff = [] } = await getStaffMembers()
   const payments = mockDb.getPayments()
   const documents = mockDb.getDocuments()
   const videoSettings = mockDb.getVideoSettings()
@@ -47,6 +49,7 @@ export default async function AdminPage() {
           documents={documents}
           courses={courses}
           videoSettings={videoSettings}
+          initialStaff={staff || []}
         />
       </section>
     </div>

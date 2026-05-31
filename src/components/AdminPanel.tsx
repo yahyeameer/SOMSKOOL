@@ -12,11 +12,13 @@ import {
   Upload, 
   Plus, 
   Loader2,
-  CheckCircle2, 
+  CheckCircle2,
   AlertCircle,
   FileCheck,
   Download,
-  Link2
+  Link2,
+  Users,
+  UserPlus
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -28,10 +30,11 @@ interface AdminPanelProps {
   documents: any[]
   courses: Course[]
   videoSettings: { youtube_id: string; channel_name: string; channel_url: string }
+  initialStaff?: any[]
 }
 
-export default function AdminPanel({ payments: initialPayments, documents: initialDocs, courses, videoSettings }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<'payments' | 'docs' | 'video'>('payments')
+export default function AdminPanel({ payments: initialPayments, documents: initialDocs, courses, videoSettings, initialStaff = [] }: AdminPanelProps) {
+  const [activeTab, setActiveTab] = useState<'payments' | 'docs' | 'video' | 'staff'>('payments')
   const [payments, setPayments] = useState<Payment[]>(initialPayments)
   const [documents, setDocuments] = useState<any[]>(initialDocs)
 
@@ -47,6 +50,14 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
   const [channelName, setChannelName] = useState(videoSettings.channel_name)
   const [channelUrl, setChannelUrl] = useState(videoSettings.channel_url)
   const [videoMessage, setVideoMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+
+  // Tab 4: Staff states
+  const [staffList, setStaffList] = useState<any[]>(initialStaff)
+  const [staffName, setStaffName] = useState('')
+  const [staffEmail, setStaffEmail] = useState('')
+  const [staffPassword, setStaffPassword] = useState('')
+  const [staffRole, setStaffRole] = useState('teacher')
+  const [staffMessage, setStaffMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   const [isPending, startTransition] = useTransition()
 
@@ -129,6 +140,46 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
     })
   }
 
+  // Tab 4 Action: Create Staff
+  const handleStaffSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setStaffMessage(null)
+
+    if (!staffName || !staffEmail || !staffPassword) {
+      setStaffMessage({ type: 'error', text: 'Fadlan buuxi dhamaan xogta macalinka/maamulaha.' })
+      return
+    }
+
+    startTransition(async () => {
+      const { createStaffAccount } = await import('@/lib/actions/admin')
+      const res = await createStaffAccount({
+        full_name: staffName,
+        email: staffEmail,
+        password: staffPassword,
+        role: staffRole
+      })
+
+      if (res.success) {
+        setStaffMessage({ type: 'success', text: `Akoonka cusub waa la sameeyay si guul ah!` })
+        setStaffList(prev => [
+          {
+            id: 'temp-' + Math.random(),
+            full_name: staffName,
+            email: staffEmail,
+            role: staffRole,
+            created_at: new Date().toISOString()
+          },
+          ...prev
+        ])
+        setStaffName('')
+        setStaffEmail('')
+        setStaffPassword('')
+      } else {
+        setStaffMessage({ type: 'error', text: res.error || 'Khalad ayaa dhacay.' })
+      }
+    })
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 font-sans">
       
@@ -173,6 +224,18 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         >
           <Video className="h-5 w-5" />
           <span>Kanaalka Muuqaalka</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('staff')}
+          className={`flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-semibold transition-all text-left ${
+            activeTab === 'staff'
+              ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/15'
+              : 'bg-white hover:bg-gray-50 border border-border text-brand-dark'
+          }`}
+        >
+          <Users className="h-5 w-5" />
+          <span>Shaqaalaha (Staff)</span>
         </button>
       </div>
 
@@ -494,6 +557,142 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
               </form>
             </CardContent>
           </Card>
+        )}
+
+        {/* ================= TAB 4: STAFF MANAGEMENT ================= */}
+        {activeTab === 'staff' && (
+          <div className="space-y-8 text-left">
+            <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
+              <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Abuur Akoon Cusub (Add Staff)</CardTitle>
+                <CardDescription className="text-gray-400 font-medium">U samee password macalimiinta iyo maamulayaasha cusub si ay si toos ah ugu soo galaan.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <form onSubmit={handleStaffSubmit} className="space-y-5">
+                  {staffMessage && (
+                    <div className={`p-4 rounded-xl flex items-start gap-2.5 text-sm font-semibold ${
+                      staffMessage.type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-500 border border-red-100'
+                    }`}>
+                      {staffMessage.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                      <span>{staffMessage.text}</span>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="staffName" className="text-xs font-bold text-gray-500 uppercase">Magaca Buuxa</Label>
+                      <Input
+                        id="staffName"
+                        type="text"
+                        placeholder="e.g. Macalin Xasan"
+                        value={staffName}
+                        onChange={(e) => setStaffName(e.target.value)}
+                        className="rounded-xl border-gray-200"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="staffEmail" className="text-xs font-bold text-gray-500 uppercase">Email (G-Mail)</Label>
+                      <Input
+                        id="staffEmail"
+                        type="email"
+                        placeholder="e.g. xasan@somskool.com"
+                        value={staffEmail}
+                        onChange={(e) => setStaffEmail(e.target.value)}
+                        className="rounded-xl border-gray-200"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="staffPassword" className="text-xs font-bold text-gray-500 uppercase">Password Cusub</Label>
+                      <Input
+                        id="staffPassword"
+                        type="password"
+                        placeholder="Buuxi password-ka sirta ah"
+                        value={staffPassword}
+                        onChange={(e) => setStaffPassword(e.target.value)}
+                        className="rounded-xl border-gray-200"
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="staffRole" className="text-xs font-bold text-gray-500 uppercase">Nooca Shaqada (Role)</Label>
+                      <select
+                        id="staffRole"
+                        value={staffRole}
+                        onChange={(e) => setStaffRole(e.target.value)}
+                        className="w-full h-10 px-3 border border-gray-200 text-brand-dark font-medium rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-primary/25 focus:border-brand-primary"
+                      >
+                        <option value="teacher">Macalin (Teacher)</option>
+                        <option value="admin">Maamule (Admin)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full md:w-auto rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer"
+                  >
+                    <UserPlus className="h-5 w-5" />
+                    Samee Akoonka
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
+              <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Liiska Shaqaalaha (Staff List)</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {staffList.length === 0 ? (
+                  <div className="py-12 text-center space-y-2">
+                    <Users className="h-11 w-11 text-gray-300 mx-auto" />
+                    <p className="text-gray-400 text-sm font-semibold">Wali ma jiraan shaqaale diiwaangashan.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead>
+                        <tr className="border-b border-gray-100 text-gray-500 text-xs font-bold uppercase tracking-wider">
+                          <th className="py-3.5 px-3">Magaca</th>
+                          <th className="py-3.5 px-3">Email</th>
+                          <th className="py-3.5 px-3">Nooca</th>
+                          <th className="py-3.5 px-3 text-right">Taariikhda</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50 font-medium">
+                        {staffList.map((s) => (
+                          <tr key={s.id} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="py-4 px-3 font-extrabold text-brand-dark">
+                              {s.full_name}
+                            </td>
+                            <td className="py-4 px-3 text-gray-500">
+                              {s.email || 'Email missing'}
+                            </td>
+                            <td className="py-4 px-3">
+                              <span className={`px-3 py-1 rounded-full text-xs font-extrabold border inline-block ${
+                                s.role === 'admin' ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-blue-50 text-blue-600 border-blue-100'
+                              }`}>
+                                {s.role.toUpperCase()}
+                              </span>
+                            </td>
+                            <td className="py-4 px-3 text-right text-gray-400 text-xs">
+                              {new Date(s.created_at).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         )}
 
       </div>

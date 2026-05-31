@@ -10,7 +10,7 @@ CREATE TABLE public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   full_name TEXT NOT NULL,
   avatar_url TEXT,
-  role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'admin')),
+  role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'teacher', 'admin')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -29,7 +29,7 @@ BEGIN
   VALUES (
     new.id,
     COALESCE(new.raw_user_meta_data->>'full_name', 'Student'),
-    CASE WHEN new.email ILIKE '%admin%' THEN 'admin' ELSE 'student' END,
+    CASE WHEN new.email ILIKE '%admin%' THEN 'admin' WHEN new.email ILIKE '%teacher%' THEN 'teacher' ELSE 'student' END,
     new.raw_user_meta_data->>'avatar_url'
   );
   RETURN new;
