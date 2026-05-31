@@ -38,15 +38,15 @@ export default function CourseCard({ course }: CourseCardProps) {
   }
 
   return (
-    <Card className="overflow-hidden border border-border bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col h-full">
+    <Card className="overflow-hidden border border-border bg-card rounded-2xl shadow-sm hover-lift group flex flex-col h-full">
       {/* Thumbnail Container */}
-      <div className="relative aspect-video w-full overflow-hidden bg-gray-100">
+      <div className="relative aspect-video w-full overflow-hidden bg-muted">
         <Image
           src={course.thumbnail_url}
           alt={course.title}
           fill
           sizes="(max-width: 768px) 100vw, 33vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
         />
         
         {/* Difficulty Badge */}

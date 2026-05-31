@@ -53,12 +53,12 @@ export default async function Home() {
   return (
     <div className="flex flex-col w-full font-sans">
       {/* 🚀 HERO SECTION */}
-      <section className="relative w-full bg-brand-primary overflow-hidden pt-12 pb-24 md:py-32">
+      <section className="relative w-full bg-gradient-to-br from-brand-primary via-brand-primary-dark to-brand-dark overflow-hidden pt-12 pb-24 md:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
           
           {/* Left Column (55%) */}
           <div className="lg:col-span-7 space-y-8 flex flex-col items-start text-left">
-            <Badge className="bg-white/10 hover:bg-white/10 text-white border border-white/20 font-semibold px-4 py-1.5 rounded-full flex items-center gap-1.5 text-xs shadow-sm">
+            <Badge className="bg-white/10 backdrop-blur-md hover:bg-white/20 text-white border border-white/20 font-semibold px-4 py-1.5 rounded-full flex items-center gap-1.5 text-xs shadow-sm transition-colors">
               <Star className="h-3.5 w-3.5 fill-brand-accent text-brand-accent" />
               #1 Learning Platform in Somalia
             </Badge>
@@ -111,7 +111,7 @@ export default async function Home() {
           {/* Right Column (45%) — Video Preview */}
           <div className="lg:col-span-5 relative flex items-center justify-center">
             {/* Video Thumbnail with Play */}
-            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-black/20 backdrop-blur-sm">
               {/* YouTube thumbnail image */}
               <Image
                 src={`https://img.youtube.com/vi/${videoSettings.youtube_id}/maxresdefault.jpg`}
@@ -141,7 +141,7 @@ export default async function Home() {
             </div>
 
             {/* Floating completed Course toast */}
-            <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-2xl p-4 border border-gray-100 flex items-center gap-3.5 rotate-[-2deg] transition-transform duration-300 hover:rotate-0">
+            <div className="absolute -bottom-6 -left-6 bg-white dark:bg-card rounded-2xl shadow-2xl p-4 border border-gray-100 dark:border-white/10 flex items-center gap-3.5 rotate-[-2deg] hover-lift hover:rotate-0 z-20">
               <div className="h-12 w-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center shadow-inner">
                 <CheckCircle className="h-7 w-7" />
               </div>
@@ -228,7 +228,7 @@ export default async function Home() {
           {/* Grid Testimonials */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((test, idx) => (
-              <div key={idx} className="relative bg-white rounded-2xl border border-gray-100 shadow-sm p-8 space-y-6 flex flex-col justify-between">
+              <div key={idx} className="relative bg-card rounded-2xl border border-border shadow-sm hover-lift p-8 space-y-6 flex flex-col justify-between">
                 {/* Top Quote Icon decoration */}
                 <span className="absolute top-4 right-6 text-brand-primary/5 text-8xl font-serif leading-none select-none pointer-events-none">
                   “

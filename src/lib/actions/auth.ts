@@ -49,14 +49,13 @@ export async function signIn(formData: FormData) {
   }
 
   const supabase = await createClient()
-  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) return { error: error.message }
 
   // Get user profile to cache in cookie for middleware performance
-  const { data: { user } } = await supabase.auth.getUser()
-  if (user) {
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-    const cachedUser = profile || { id: user.id, full_name: user.user_metadata.full_name || 'Student', role: 'student' }
+  if (data.user) {
+    const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single()
+    const cachedUser = profile || { id: data.user.id, full_name: data.user.user_metadata.full_name || 'Student', role: 'student' }
     const cookieStore = await cookies()
     cookieStore.set('somskool_user', JSON.stringify(cachedUser), { path: '/', maxAge: 604800 })
   }
@@ -89,7 +88,7 @@ export async function signUp(formData: FormData) {
   }
 
   const supabase = await createClient()
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: { data: { full_name: fullName } }
@@ -98,10 +97,10 @@ export async function signUp(formData: FormData) {
   if (error) return { error: error.message }
 
   // Supabase trigger automatically creates a profile.
-  // Wait a moment and redirect to login or courses.
-  const { data: { user } } = await supabase.auth.getUser()
-  if (user) {
-    const cachedUser = { id: user.id, full_name: fullName, role: 'student' }
+  // Use data.user from signUp response instead of getUser() because cookies are not flushed yet.
+  if (data.user) {
+    const role = email.toLowerCase().includes('admin') ? 'admin' : 'student';
+    const cachedUser = { id: data.user.id, full_name: fullName, role, avatar_url: '' }
     const cookieStore = await cookies()
     cookieStore.set('somskool_user', JSON.stringify(cachedUser), { path: '/', maxAge: 604800 })
   }
