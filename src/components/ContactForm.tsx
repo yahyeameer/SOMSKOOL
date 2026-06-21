@@ -6,11 +6,13 @@ import { CheckCircle2, AlertCircle, Loader2, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 export default function ContactForm() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { t } = useLanguage()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -43,10 +45,10 @@ export default function ContactForm() {
         </div>
         <div className="space-y-2">
           <h2 className="font-display text-2xl font-bold text-brand-dark">
-            Fariintaada waa la helay!
+            {t('form_success_title')}
           </h2>
           <p className="text-gray-500 text-sm leading-relaxed max-w-sm mx-auto font-medium">
-            Waad ku mahadsantahay in aad nala soo xiriirisay. Kooxdayda taageerada waxay kugu jawaabi doonaan muddo 24 saacadood gudahood.
+            {t('form_success_desc')}
           </p>
         </div>
       </div>
@@ -57,30 +59,30 @@ export default function ContactForm() {
     <div className="bg-white border border-border rounded-2xl p-8 shadow-sm space-y-6 font-sans text-left">
       <div className="space-y-1">
         <h3 className="font-display text-xl font-bold text-brand-dark">
-          Noo soo Dir Fariin
+          {t('send_message')}
         </h3>
         <p className="text-gray-400 text-xs font-semibold">
-          Buuxi foomka hoose, waxaana kuu jawaabi doonaa kooxdayda taageerada.
+          {t('form_subtitle')}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Full Name */}
         <div className="space-y-1.5">
-          <Label htmlFor="full_name" className="text-xs font-bold text-gray-500 uppercase">Magacaaga oo Buuxa</Label>
+          <Label htmlFor="full_name" className="text-xs font-bold text-gray-500 uppercase">{t('full_name')}</Label>
           <Input
             id="full_name"
             name="full_name"
             type="text"
             required
-            placeholder="e.g. Maxamed Axmed"
+            placeholder={t('name_placeholder')}
             className="bg-white border-gray-200 text-brand-dark font-medium rounded-xl focus-visible:ring-brand-primary"
           />
         </div>
 
         {/* Email */}
         <div className="space-y-1.5">
-          <Label htmlFor="email" className="text-xs font-bold text-gray-500 uppercase">Iimaylkaaga</Label>
+          <Label htmlFor="email" className="text-xs font-bold text-gray-500 uppercase">{t('email_label')}</Label>
           <Input
             id="email"
             name="email"
@@ -93,25 +95,25 @@ export default function ContactForm() {
 
         {/* Subject */}
         <div className="space-y-1.5">
-          <Label htmlFor="subject" className="text-xs font-bold text-gray-500 uppercase">Mowduuca</Label>
+          <Label htmlFor="subject" className="text-xs font-bold text-gray-500 uppercase">{t('subject')}</Label>
           <Input
             id="subject"
             name="subject"
             type="text"
-            placeholder="e.g. Su'aal ku saabsan koorsada"
+            placeholder={t('subject_placeholder')}
             className="bg-white border-gray-200 text-brand-dark font-medium rounded-xl focus-visible:ring-brand-primary"
           />
         </div>
 
         {/* Message */}
         <div className="space-y-1.5">
-          <Label htmlFor="message" className="text-xs font-bold text-gray-500 uppercase">Fariintaada</Label>
+          <Label htmlFor="message" className="text-xs font-bold text-gray-500 uppercase">{t('message')}</Label>
           <textarea
             id="message"
             name="message"
             rows={5}
             required
-            placeholder="Qor fariintaada halkan..."
+            placeholder={t('message_placeholder')}
             className="flex w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-brand-dark font-medium placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
           />
         </div>
@@ -128,17 +130,17 @@ export default function ContactForm() {
         <Button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-bold py-6 text-base gap-2 shadow-lg shadow-brand-primary/15 transition-all cursor-pointer"
+          className="w-full rounded-2xl bg-gradient-to-r from-brand-primary to-[#4834D4] hover:shadow-xl hover:shadow-brand-primary/30 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 font-bold py-7 text-base gap-2 cursor-pointer"
         >
           {loading ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
-              Dirayaa...
+              {t('sending')}
             </>
           ) : (
             <>
               <Send className="h-5 w-5" />
-              Dir Fariinta
+              {t('submit_message')}
             </>
           )}
         </Button>

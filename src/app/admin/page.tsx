@@ -1,9 +1,8 @@
 import React from 'react'
 import { getSessionUser } from '@/lib/actions/auth'
 import { getCourses } from '@/lib/actions/courses'
-import { getStaffMembers } from '@/lib/actions/admin'
+import { getStaffMembers, getPayments, getDocuments, getVideoSettings, getAllCourseVideos } from '@/lib/actions/admin'
 import { redirect } from 'next/navigation'
-import { mockDb } from '@/lib/supabase/mock'
 import AdminPanel from '@/components/AdminPanel'
 import { Shield } from 'lucide-react'
 
@@ -16,9 +15,10 @@ export default async function AdminPage() {
 
   const { data: courses = [] } = await getCourses()
   const { data: staff = [] } = await getStaffMembers()
-  const payments = mockDb.getPayments()
-  const documents = mockDb.getDocuments()
-  const videoSettings = mockDb.getVideoSettings()
+  const payments = await getPayments()
+  const documents = await getDocuments()
+  const videoSettings = await getVideoSettings()
+  const courseVideos = await getAllCourseVideos()
 
   return (
     <div className="flex flex-col w-full font-sans min-h-screen bg-background">
@@ -48,6 +48,7 @@ export default async function AdminPage() {
           payments={payments}
           documents={documents}
           courses={courses}
+          courseVideos={courseVideos}
           videoSettings={videoSettings}
           initialStaff={staff || []}
         />

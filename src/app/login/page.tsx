@@ -7,11 +7,13 @@ import { BookOpen, KeyRound, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-re
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { t } = useLanguage()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -42,14 +44,14 @@ export default function LoginPage() {
         {/* Brand Focus */}
         <div className="space-y-6 relative z-10 my-auto">
           <Badge className="bg-white/10 hover:bg-white/10 text-white border border-white/20 px-4 py-1.5 rounded-full text-xs w-fit">
-            Waxbarasho Tayo Sare Leh
+            {t('quality_education')}
           </Badge>
           <h1 className="font-display text-5xl font-extrabold leading-tight tracking-tight">
             Learn Without <br />
             <span className="text-brand-accent">Limits.</span>
           </h1>
           <p className="text-white/80 text-base leading-relaxed max-w-md">
-            Ku biir kumanaan arday Soomaaliyeed oo maanta ku baranaya xirfado cusub oo wax ku ool ah, si ay u qaadaan talaabada xigta ee noloshooda xirfadeed.
+            {t('join_thousands')}
           </p>
         </div>
 
@@ -74,10 +76,10 @@ export default function LoginPage() {
               <span className="font-display text-xl font-bold tracking-tight text-brand-dark">SOMSKOOL</span>
             </div>
             <h2 className="font-display text-3xl font-extrabold text-brand-dark">
-              Ku soo Dhowow!
+              {t('welcome_back')}
             </h2>
             <p className="text-gray-400 text-sm font-semibold">
-              Fadlan geli macluumaadkaaga hoose si aad u gasho koorsadaada.
+              {t('login_prompt')}
             </p>
           </div>
 
@@ -85,7 +87,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email field */}
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs font-bold text-gray-500 uppercase">Iimaylkaaga (Email)</Label>
+              <Label htmlFor="email" className="text-xs font-bold text-gray-500 uppercase">{t('email_label')}</Label>
               <Input
                 id="email"
                 name="email"
@@ -99,8 +101,8 @@ export default function LoginPage() {
             {/* Password field */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-xs font-bold text-gray-500 uppercase">Furehaaga (Password)</Label>
-                <a href="#" className="text-xs font-bold text-brand-primary hover:underline">Furaagii ma ilowday?</a>
+                <Label htmlFor="password" className="text-xs font-bold text-gray-500 uppercase">{t('password')}</Label>
+                <a href="#" className="text-xs font-bold text-brand-primary hover:underline">{t('forgot_password')}</a>
               </div>
               <div className="relative">
                 <Input
@@ -108,7 +110,7 @@ export default function LoginPage() {
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder="Geli furehaaga"
+                  placeholder={t('password_placeholder')}
                   className="bg-white border-gray-200 text-brand-dark pr-10 font-medium rounded-xl focus-visible:ring-brand-primary"
                 />
                 <button
@@ -138,19 +140,19 @@ export default function LoginPage() {
               {loading ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Galayaa...
+                  {t('logging_in')}
                 </>
               ) : (
-                'Soo gal (Sign In)'
+                t('login_button')
               )}
             </Button>
           </form>
 
           {/* Registration Option */}
           <div className="text-center pt-2 text-sm text-gray-500 font-semibold">
-            Arday cusub ma tahay?{' '}
+            {t('new_student')}{' '}
             <Link href="/register" className="text-brand-primary hover:underline font-bold">
-              Is-diiwangali hadda →
+              {t('register_now')}
             </Link>
           </div>
         </div>

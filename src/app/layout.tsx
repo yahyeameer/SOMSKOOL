@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getSessionUser } from "@/lib/actions/auth";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -30,9 +31,11 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${jakarta.variable} ${dmSans.variable}`}>
       <body className="min-h-screen bg-background text-foreground flex flex-col font-sans">
-        <Navbar user={user} />
-        <main className="flex-1 flex flex-col">{children}</main>
-        <Footer />
+        <LanguageProvider>
+          <Navbar user={user} />
+          <main className="flex-1 flex flex-col">{children}</main>
+          <Footer />
+        </LanguageProvider>
       </body>
     </html>
   );

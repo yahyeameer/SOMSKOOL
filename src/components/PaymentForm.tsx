@@ -8,6 +8,7 @@ import { CheckCircle2, AlertCircle, ArrowRight, Loader2 } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface PaymentFormProps {
   courseId: string
@@ -25,11 +26,12 @@ export default function PaymentForm({ courseId, title, price, user }: PaymentFor
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { t } = useLanguage()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!agreed) {
-      setError('Fadlan xaqiiji inaad lacagta dirtay adoo saxaya sanduuqa.')
+      setError(t('agree_checkbox') || 'Fadlan xaqiiji inaad lacagta dirtay adoo saxaya sanduuqa.')
       return
     }
 
@@ -69,10 +71,10 @@ export default function PaymentForm({ courseId, title, price, user }: PaymentFor
         </div>
         <div className="space-y-2">
           <h2 className="font-display text-2xl font-bold text-brand-dark">
-            Faahfaahinta waa la helay!
+            {t('payment_success')}
           </h2>
           <p className="text-gray-500 text-sm leading-relaxed max-w-sm mx-auto font-medium">
-            Waad ku mahadsantahay is-diiwangalintaada! Maamulkeena wuxuu xaqiijin doonaa lacag-bixintaada muddo 24 saacadood gudahood ah. Waxaad heli doontaa iimayl xaqiijin ah.
+            {t('payment_success_desc')}
           </p>
         </div>
         <Link 
@@ -81,7 +83,7 @@ export default function PaymentForm({ courseId, title, price, user }: PaymentFor
             className: "rounded-full bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 shadow-md shadow-brand-primary/10 flex items-center justify-center inline-flex" 
           })}
         >
-          Koorsadayda
+          {t('my_courses')}
         </Link>
       </div>
     )
@@ -91,10 +93,10 @@ export default function PaymentForm({ courseId, title, price, user }: PaymentFor
     <div className="bg-white border border-border rounded-2xl p-8 shadow-sm space-y-6 font-sans text-left">
       <div className="space-y-1">
         <h3 className="font-display text-xl font-bold text-brand-dark">
-          Geli Faahfaahinta
+          {t('enter_details')}
         </h3>
         <p className="text-gray-400 text-xs font-semibold">
-          Fadlan ku qor faahfaahintii rasiidhka lagugu siiyey markaad lacagta dirtay.
+          {t('payment_form_desc')}
         </p>
       </div>
 
@@ -102,7 +104,7 @@ export default function PaymentForm({ courseId, title, price, user }: PaymentFor
         {/* Full Name & Email pre-filled read-only fields */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-gray-500 uppercase">Magacaaga</Label>
+            <Label className="text-xs font-bold text-gray-500 uppercase">{t('full_name')}</Label>
             <Input
               type="text"
               value={user?.full_name || ''}
@@ -111,7 +113,7 @@ export default function PaymentForm({ courseId, title, price, user }: PaymentFor
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-gray-500 uppercase">Dooro Habka</Label>
+            <Label className="text-xs font-bold text-gray-500 uppercase">{t('choose_method')}</Label>
             <div className="h-10 px-3 bg-gray-50 border border-gray-200 text-brand-dark font-semibold rounded-xl flex items-center text-sm capitalize">
               {method.replace('_', ' ')}
             </div>
@@ -120,7 +122,7 @@ export default function PaymentForm({ courseId, title, price, user }: PaymentFor
 
         {/* Sender Mobile Number */}
         <div className="space-y-1.5">
-          <Label htmlFor="phone" className="text-xs font-bold text-gray-500 uppercase">Nambarka Lacagta laga diray</Label>
+          <Label htmlFor="phone" className="text-xs font-bold text-gray-500 uppercase">{t('sender_number')}</Label>
           <Input
             id="phone"
             type="tel"
@@ -134,7 +136,7 @@ export default function PaymentForm({ courseId, title, price, user }: PaymentFor
 
         {/* Method Picker Grid */}
         <div className="space-y-2">
-          <Label className="text-xs font-bold text-gray-500 uppercase">Habka Lacag-bixinta</Label>
+          <Label className="text-xs font-bold text-gray-500 uppercase">{t('payment_method')}</Label>
           <div className="grid grid-cols-2 gap-3">
             {methods.map((met) => {
               const isSelected = method === met.id
@@ -163,12 +165,12 @@ export default function PaymentForm({ courseId, title, price, user }: PaymentFor
 
         {/* Transaction Reference ID */}
         <div className="space-y-1.5">
-          <Label htmlFor="reference" className="text-xs font-bold text-gray-500 uppercase">Lamberka Aqoonsiga (Transaction Ref/ID)</Label>
+          <Label htmlFor="reference" className="text-xs font-bold text-gray-500 uppercase">{t('transaction_id')}</Label>
           <Input
             id="reference"
             type="text"
             required
-            placeholder="Geli lambarka aqoonsiga ee risiidhka"
+            placeholder={t('transaction_placeholder')}
             value={reference}
             onChange={(e) => setReference(e.target.value)}
             className="bg-white border-gray-200 text-brand-dark font-medium rounded-xl focus-visible:ring-brand-primary"
@@ -193,7 +195,7 @@ export default function PaymentForm({ courseId, title, price, user }: PaymentFor
             className="h-4.5 w-4.5 rounded border-gray-300 text-brand-primary focus:ring-brand-primary mt-0.5 cursor-pointer"
           />
           <Label htmlFor="agree" className="text-xs text-gray-500 font-semibold leading-relaxed cursor-pointer select-none">
-            Waxaan xaqiijinayaa inaan lacagta u diray lambarka saxda ah, faahfaahinta kor ku xusanna ay tahay mid sax ah.
+            {t('confirm_payment_details')}
           </Label>
         </div>
 
@@ -206,11 +208,11 @@ export default function PaymentForm({ courseId, title, price, user }: PaymentFor
           {loading ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
-              Gudbinayaa...
+              {t('submitting')}
             </>
           ) : (
             <>
-              Gudbi Faahfaahinta
+              {t('submit_details')}
               <ArrowRight className="h-5 w-5" />
             </>
           )}

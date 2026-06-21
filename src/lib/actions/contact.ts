@@ -1,7 +1,6 @@
 'use server'
 
-import { createClient, isMock } from '@/lib/supabase/server'
-import { mockDb } from '@/lib/supabase/mock'
+import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export async function submitContactMessage(formData: {
@@ -14,31 +13,23 @@ export async function submitContactMessage(formData: {
     return { error: 'Fadlan wada buuxi dhamaan meelaha lagama maarmaanka ah.' }
   }
 
-  if (isMock) {
-    try {
-      mockDb.addContactMessage({
-        full_name: formData.fullName,
-        email: formData.email,
-        subject: formData.subject || '',
-        message: formData.message,
-      });
-      revalidatePath('/contact')
-      return { success: true }
-    } catch (e: any) {
-      return { error: e.message }
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase.from('contact_messages').insert({
+      full_name: formData.fullName,
+      email: formData.email,
+      subject: formData.subject || '',
+      message: formData.message,
+    })
+
+    if (error) {
+      console.error('Error submitting contact message:', error.message)
+      return { error: error.message }
     }
+
+    revalidatePath('/contact')
+    return { success: true }
+  } catch (err: any) {
+    return { error: err.message || 'Failed to submit message.' }
   }
-
-  const supabase = await createClient()
-  const { error } = await supabase.from('contact_messages').insert({
-    full_name: formData.fullName,
-    email: formData.email,
-    subject: formData.subject || '',
-    message: formData.message,
-  })
-
-  if (error) return { error: error.message }
-
-  revalidatePath('/contact')
-  return { success: true }
 }

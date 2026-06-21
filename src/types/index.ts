@@ -3,7 +3,16 @@ export interface Profile {
   full_name: string;
   avatar_url?: string;
   role: 'student' | 'admin';
+  points: number;
   created_at: string;
+}
+
+export interface VideoSettings {
+  youtube_id: string;
+  channel_name: string;
+  channel_url: string;
+  video_title: string;
+  video_thumbnail_url: string;
 }
 
 export interface Category {
@@ -60,4 +69,22 @@ export interface ContactMessage {
   subject?: string;
   message: string;
   created_at: string;
+}
+
+export interface CourseVideo {
+  id: string;
+  course_id: string;
+  title: string;
+  youtube_id: string;
+  points_awarded: number;
+  order_index: number;
+  created_at: string;
+}
+
+export interface StudentProgress {
+  id: string;
+  student_id: string;
+  video_id: string;
+  course_id: string;
+  completed_at: string;
 }

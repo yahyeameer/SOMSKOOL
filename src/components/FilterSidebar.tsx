@@ -5,10 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Search } from 'lucide-react'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 export default function FilterSidebar() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useLanguage()
 
   const [search, setSearch] = useState(searchParams.get('q') || '')
   const [category, setCategory] = useState(searchParams.get('category') || 'all')
@@ -54,25 +56,25 @@ export default function FilterSidebar() {
   }
 
   const categories = [
-    { name: 'All Categories', slug: 'all' },
-    { name: 'Web Development', slug: 'web-development' },
-    { name: 'UI/UX Design', slug: 'ui-ux' },
-    { name: 'Digital Marketing', slug: 'digital-marketing' },
-    { name: 'Data Science & AI', slug: 'data-science' },
-    { name: 'Business Strategy', slug: 'business' },
+    { name: t('all_categories'), slug: 'all' },
+    { name: t('web_development'), slug: 'web-development' },
+    { name: t('ui_ux'), slug: 'ui-ux' },
+    { name: t('digital_marketing'), slug: 'digital-marketing' },
+    { name: t('data_science'), slug: 'data-science' },
+    { name: t('business'), slug: 'business' },
   ]
 
   const levels = [
-    { name: 'All Levels', slug: 'all' },
-    { name: 'Beginner', slug: 'Beginner' },
-    { name: 'Intermediate', slug: 'Intermediate' },
-    { name: 'Advanced', slug: 'Advanced' },
+    { name: t('all_levels'), slug: 'all' },
+    { name: t('beginner'), slug: 'Beginner' },
+    { name: t('intermediate'), slug: 'Intermediate' },
+    { name: t('advanced'), slug: 'Advanced' },
   ]
 
   const prices = [
-    { name: 'All Prices', slug: 'all' },
-    { name: 'Bilaash (Free)', slug: 'free' },
-    { name: 'Lacag (Paid)', slug: 'paid' },
+    { name: t('all_prices'), slug: 'all' },
+    { name: t('free'), slug: 'free' },
+    { name: t('paid'), slug: 'paid' },
   ]
 
   return (
@@ -80,13 +82,13 @@ export default function FilterSidebar() {
       {/* Search Input */}
       <div className="space-y-2">
         <h3 className="text-sm font-bold text-brand-dark uppercase tracking-wider font-display">
-          Raadi Koorsada
+          {t('search_course')}
         </h3>
         <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
           <Input
             type="text"
-            placeholder="Koorso qor..."
+            placeholder={t('search_placeholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 bg-gray-50 border-gray-150 text-brand-dark rounded-xl focus-visible:ring-brand-primary"
@@ -94,20 +96,20 @@ export default function FilterSidebar() {
         </div>
       </div>
 
-      {/* Category Checkboxes / Buttons */}
+      {/* Category Buttons */}
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-brand-dark uppercase tracking-wider font-display border-b border-gray-100 pb-2">
-          Qeybaha
+          {t('categories')}
         </h3>
         <div className="flex flex-wrap lg:flex-col gap-2">
           {categories.map((cat) => (
             <button
               key={cat.slug}
               onClick={() => handleCategoryChange(cat.slug)}
-              className={`px-3 py-2 rounded-xl text-xs font-semibold text-left transition-all w-fit lg:w-full ${
+              className={`px-4 py-2.5 rounded-full text-xs font-bold text-left transition-all duration-300 w-fit lg:w-full border ${
                 category === cat.slug
-                  ? 'bg-brand-primary text-white shadow-sm'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-brand-dark'
+                  ? 'bg-gradient-to-r from-brand-primary to-[#4834D4] text-white shadow-lg shadow-brand-primary/25 border-transparent scale-[1.02]'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary'
               }`}
             >
               {cat.name}
@@ -116,20 +118,20 @@ export default function FilterSidebar() {
         </div>
       </div>
 
-      {/* Difficulty Level Radio Panel */}
+      {/* Difficulty Level Panel */}
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-brand-dark uppercase tracking-wider font-display border-b border-gray-100 pb-2">
-          Heerka Koorsada
+          {t('course_level')}
         </h3>
         <div className="flex flex-wrap lg:flex-col gap-2">
           {levels.map((lvl) => (
             <button
               key={lvl.slug}
               onClick={() => handleLevelChange(lvl.slug)}
-              className={`px-3 py-2 rounded-xl text-xs font-semibold text-left transition-all w-fit lg:w-full ${
+              className={`px-4 py-2.5 rounded-full text-xs font-bold text-left transition-all duration-300 w-fit lg:w-full border ${
                 level === lvl.slug
-                  ? 'bg-brand-primary text-white shadow-sm'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-brand-dark'
+                  ? 'bg-gradient-to-r from-brand-primary to-[#4834D4] text-white shadow-lg shadow-brand-primary/25 border-transparent scale-[1.02]'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary'
               }`}
             >
               {lvl.name}
@@ -141,17 +143,17 @@ export default function FilterSidebar() {
       {/* Price Panel */}
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-brand-dark uppercase tracking-wider font-display border-b border-gray-100 pb-2">
-          Nooca Qiimaha
+          {t('price_type')}
         </h3>
         <div className="flex flex-wrap lg:flex-col gap-2">
           {prices.map((prc) => (
             <button
               key={prc.slug}
               onClick={() => handlePriceChange(prc.slug)}
-              className={`px-3 py-2 rounded-xl text-xs font-semibold text-left transition-all w-fit lg:w-full ${
+              className={`px-4 py-2.5 rounded-full text-xs font-bold text-left transition-all duration-300 w-fit lg:w-full border ${
                 price === prc.slug
-                  ? 'bg-brand-primary text-white shadow-sm'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-brand-dark'
+                  ? 'bg-gradient-to-r from-brand-primary to-[#4834D4] text-white shadow-lg shadow-brand-primary/25 border-transparent scale-[1.02]'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary'
               }`}
             >
               {prc.name}

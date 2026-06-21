@@ -1,7 +1,6 @@
 'use server'
 
-import { createClient, isMock } from '@/lib/supabase/server'
-import { mockDb } from '@/lib/supabase/mock'
+import { createClient } from '@/lib/supabase/server'
 import { getSessionUser } from './auth'
 import { Course } from '@/types'
 
@@ -11,88 +10,70 @@ export async function getCourses(filters?: {
   price?: string;
   q?: string;
 }) {
-  if (isMock) {
-    let list = mockDb.getCourses();
-    
+  try {
+    const supabase = await createClient()
+    let query = supabase.from('courses').select('*').eq('is_published', true)
+
     if (filters?.level && filters.level !== 'all') {
-      list = list.filter(c => c.level.toLowerCase() === filters.level!.toLowerCase());
+      query = query.eq('level', filters.level)
     }
-    
-    if (filters?.category && filters.category !== 'all') {
-      list = list.filter(c => c.category_slug === filters.category);
-    }
-    
     if (filters?.price === 'free') {
-      list = list.filter(c => c.is_free);
+      query = query.eq('is_free', true)
     } else if (filters?.price === 'paid') {
-      list = list.filter(c => !c.is_free);
+      query = query.eq('is_free', false)
     }
-    
     if (filters?.q) {
-      const search = filters.q.toLowerCase();
-      list = list.filter(c => 
-        c.title.toLowerCase().includes(search) || 
-        c.description?.toLowerCase().includes(search)
-      );
+      query = query.ilike('title', `%${filters.q}%`)
     }
-    
-    return { data: list, error: null };
-  }
 
-  const supabase = await createClient()
-  let query = supabase.from('courses').select('*').eq('is_published', true)
+    const { data, error } = await query
 
-  if (filters?.level && filters.level !== 'all') {
-    query = query.eq('level', filters.level)
-  }
-  if (filters?.category && filters.category !== 'all') {
-    query = query.eq('category_slug', filters.category)
-  }
-  if (filters?.price === 'free') {
-    query = query.eq('is_free', true)
-  } else if (filters?.price === 'paid') {
-    query = query.eq('is_free', false)
-  }
-  if (filters?.q) {
-    query = query.ilike('title', `%${filters.q}%`)
-  }
+    if (error) {
+      console.error('Error fetching courses:', error.message)
+      return { data: [], error: error.message }
+    }
 
-  const { data, error } = await query
-
-  return { data: data as Course[] || [], error }
+    return { data: (data as Course[]) || [], error: null }
+  } catch (err: any) {
+    console.error('getCourses exception:', err.message)
+    return { data: [], error: err.message }
+  }
 }
 
 export async function getCourseBySlug(slug: string) {
-  if (isMock) {
-    const course = mockDb.getCourseBySlug(slug);
-    return { data: course || null, error: course ? null : { message: 'Course not found' } };
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('courses')
+      .select('*')
+      .eq('slug', slug)
+      .single()
+
+    if (error) {
+      return { data: null, error: { message: error.message } }
+    }
+
+    return { data: data as Course, error: null }
+  } catch (err: any) {
+    return { data: null, error: { message: err.message } }
   }
-
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('courses')
-    .select('*')
-    .eq('slug', slug)
-    .single()
-
-  return { data: data as Course || null, error }
 }
 
 export async function isCourseEnrolled(courseId: string) {
   const user = await getSessionUser();
   if (!user) return false;
 
-  if (isMock) {
-    return mockDb.isEnrolled(user.id, courseId);
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('enrollments')
+      .select('id')
+      .eq('student_id', user.id)
+      .eq('course_id', courseId)
+      .maybeSingle()
+
+    return !!data;
+  } catch {
+    return false;
   }
-
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('enrollments')
-    .select('*')
-    .eq('student_id', user.id)
-    .eq('course_id', courseId)
-    .maybeSingle()
-
-  return !!data;
 }

@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useTransition } from 'react'
-import { Course, Payment } from '@/types'
-import { modifyPaymentStatus, submitDocumentUpload, saveVideoSettings } from '@/lib/actions/admin'
+import { Course, Payment, CourseVideo } from '@/types'
+import { modifyPaymentStatus, submitDocumentUpload, saveVideoSettings, addCourseVideo, deleteCourseVideo } from '@/lib/actions/admin'
 import { 
   CheckCircle, 
   XCircle, 
@@ -18,23 +18,28 @@ import {
   Download,
   Link2,
   Users,
-  UserPlus
+  UserPlus,
+  PlayCircle,
+  Trash2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface AdminPanelProps {
   payments: Payment[]
   documents: any[]
   courses: Course[]
-  videoSettings: { youtube_id: string; channel_name: string; channel_url: string }
+  videoSettings: { youtube_id: string; channel_name: string; channel_url: string; video_title: string; video_thumbnail_url: string }
   initialStaff?: any[]
+  courseVideos?: CourseVideo[]
 }
 
-export default function AdminPanel({ payments: initialPayments, documents: initialDocs, courses, videoSettings, initialStaff = [] }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<'payments' | 'docs' | 'video' | 'staff'>('payments')
+export default function AdminPanel({ payments: initialPayments, documents: initialDocs, courses, videoSettings, initialStaff = [], courseVideos: initialVideos = [] }: AdminPanelProps) {
+  const { t } = useLanguage()
+  const [activeTab, setActiveTab] = useState<'payments' | 'docs' | 'video' | 'staff' | 'modules'>('payments')
   const [payments, setPayments] = useState<Payment[]>(initialPayments)
   const [documents, setDocuments] = useState<any[]>(initialDocs)
 
@@ -49,6 +54,8 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
   const [youtubeId, setYoutubeId] = useState(videoSettings.youtube_id)
   const [channelName, setChannelName] = useState(videoSettings.channel_name)
   const [channelUrl, setChannelUrl] = useState(videoSettings.channel_url)
+  const [videoTitle, setVideoTitle] = useState(videoSettings.video_title || '')
+  const [videoThumbnail, setVideoThumbnail] = useState(videoSettings.video_thumbnail_url || '')
   const [videoMessage, setVideoMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   // Tab 4: Staff states
@@ -58,6 +65,14 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
   const [staffPassword, setStaffPassword] = useState('')
   const [staffRole, setStaffRole] = useState('teacher')
   const [staffMessage, setStaffMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+
+  // Tab 5: Course Modules states
+  const [videoList, setVideoList] = useState<CourseVideo[]>(initialVideos)
+  const [moduleCourse, setModuleCourse] = useState(courses[0]?.id || '')
+  const [moduleTitle, setModuleTitle] = useState('')
+  const [moduleYoutubeId, setModuleYoutubeId] = useState('')
+  const [modulePoints, setModulePoints] = useState(10)
+  const [moduleMessage, setModuleMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   const [isPending, startTransition] = useTransition()
 
@@ -129,7 +144,9 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       const res = await saveVideoSettings({
         youtube_id: youtubeId,
         channel_name: channelName,
-        channel_url: channelUrl || 'https://youtube.com'
+        channel_url: channelUrl || 'https://youtube.com',
+        video_title: videoTitle,
+        video_thumbnail_url: videoThumbnail,
       })
 
       if (res.success) {
@@ -180,6 +197,56 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
     })
   }
 
+  // Tab 5 Action: Create Module
+  const handleModuleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setModuleMessage(null)
+
+    if (!moduleTitle || !moduleYoutubeId) {
+      setModuleMessage({ type: 'error', text: 'Fadlan buuxi dhamaan xogta module-ka.' })
+      return
+    }
+
+    startTransition(async () => {
+      const res = await addCourseVideo({
+        course_id: moduleCourse,
+        title: moduleTitle,
+        youtube_id: moduleYoutubeId,
+        points_awarded: modulePoints,
+        order_index: videoList.filter(v => v.course_id === moduleCourse).length + 1
+      })
+
+      if (res.success) {
+        setModuleMessage({ type: 'success', text: `Module cusub waa la diiwaangaliyey!` })
+        setVideoList(prev => [...prev, {
+          id: 'temp-' + Math.random(),
+          course_id: moduleCourse,
+          title: moduleTitle,
+          youtube_id: moduleYoutubeId,
+          points_awarded: modulePoints,
+          order_index: videoList.filter(v => v.course_id === moduleCourse).length + 1,
+          created_at: new Date().toISOString()
+        }])
+        setModuleTitle('')
+        setModuleYoutubeId('')
+      } else {
+        setModuleMessage({ type: 'error', text: res.error || 'Khalad ayaa dhacay.' })
+      }
+    })
+  }
+
+  const handleModuleDelete = async (id: string) => {
+    if (!confirm('Ma hubtaa inaad tirtirto video-gan?')) return
+    startTransition(async () => {
+      const res = await deleteCourseVideo(id)
+      if (res.success) {
+        setVideoList(prev => prev.filter(v => v.id !== id))
+      } else {
+        alert(res.error || 'Khalad ayaa dhacay')
+      }
+    })
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 font-sans">
       
@@ -194,7 +261,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           }`}
         >
           <CreditCard className="h-5 w-5" />
-          <span>Lacagaha (Payments)</span>
+          <span>{t('payments')}</span>
           {payments.filter(p => p.status === 'pending').length > 0 && (
             <span className="ml-auto bg-brand-accent text-brand-dark rounded-full px-2 py-0.5 text-xs font-bold">
               {payments.filter(p => p.status === 'pending').length}
@@ -211,7 +278,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           }`}
         >
           <FileText className="h-5 w-5" />
-          <span>Dukumentiyada (Docs)</span>
+          <span>{t('documents')}</span>
         </button>
 
         <button
@@ -223,7 +290,19 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           }`}
         >
           <Video className="h-5 w-5" />
-          <span>Kanaalka Muuqaalka</span>
+          <span>Homepage Video</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('modules')}
+          className={`flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-semibold transition-all text-left ${
+            activeTab === 'modules'
+              ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/15'
+              : 'bg-white hover:bg-gray-50 border border-border text-brand-dark'
+          }`}
+        >
+          <PlayCircle className="h-5 w-5" />
+          <span>Course Modules</span>
         </button>
 
         <button
@@ -235,7 +314,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           }`}
         >
           <Users className="h-5 w-5" />
-          <span>Shaqaalaha (Staff)</span>
+          <span>{t('staff')}</span>
         </button>
       </div>
 
@@ -252,7 +331,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         {activeTab === 'payments' && (
           <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden text-left">
             <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-              <CardTitle className="font-display text-xl font-bold text-brand-dark">Lacagaha Ardayda (Student Payments)</CardTitle>
+              <CardTitle className="font-display text-xl font-bold text-brand-dark">{t('payments')}</CardTitle>
               <CardDescription className="text-gray-400 font-medium">Ku maamul halkan rasiidhada lacag-bixinta, una fasax casharada ardayda ansaxday.</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
@@ -537,6 +616,40 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                   </div>
                 </div>
 
+                {/* NEW: Video title and thumbnail fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="videoTitle" className="text-xs font-bold text-gray-500 uppercase">Video Title / Caption</Label>
+                    <Input
+                      id="videoTitle"
+                      type="text"
+                      placeholder="e.g. Welcome to SomSkool Academy"
+                      value={videoTitle}
+                      onChange={(e) => setVideoTitle(e.target.value)}
+                      className="rounded-xl border-gray-200"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="videoThumbnail" className="text-xs font-bold text-gray-500 uppercase">Custom Thumbnail URL (Image)</Label>
+                    <Input
+                      id="videoThumbnail"
+                      type="url"
+                      placeholder="e.g. https://images.unsplash.com/photo-123..."
+                      value={videoThumbnail}
+                      onChange={(e) => setVideoThumbnail(e.target.value)}
+                      className="rounded-xl border-gray-200"
+                    />
+                  </div>
+                </div>
+
+                {/* Thumbnail Preview */}
+                {videoThumbnail && (
+                  <div className="rounded-xl overflow-hidden border border-gray-200 max-w-sm">
+                    <img src={videoThumbnail} alt="Thumbnail preview" className="w-full h-40 object-cover" />
+                    <div className="p-2 bg-gray-50 text-xs text-gray-500 font-medium text-center">Thumbnail Preview</div>
+                  </div>
+                )}
+
                 <div className="bg-brand-primary/[0.02] border border-brand-primary/10 rounded-xl p-4 space-y-2">
                   <div className="flex items-center gap-2">
                     <Link2 className="h-4 w-4 text-brand-primary" />
@@ -686,6 +799,147 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                             </td>
                           </tr>
                         ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* ================= TAB 5: COURSE MODULES ================= */}
+        {activeTab === 'modules' && (
+          <div className="space-y-8 text-left">
+            <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
+              <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Geli Video Cusub (Add Course Module)</CardTitle>
+                <CardDescription className="text-gray-400 font-medium">Kudar casharo muuqaal ah (YouTube URLs) oo u qaas ah koorsooyinka, ardaydana ha ula socdaan horumarkooda.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <form onSubmit={handleModuleSubmit} className="space-y-5">
+                  {moduleMessage && (
+                    <div className={`p-4 rounded-xl flex items-start gap-2.5 text-sm font-semibold ${
+                      moduleMessage.type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-500 border border-red-100'
+                    }`}>
+                      {moduleMessage.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                      <span>{moduleMessage.text}</span>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="moduleCourse" className="text-xs font-bold text-gray-500 uppercase">Dooro Koorsada</Label>
+                      <select
+                        id="moduleCourse"
+                        value={moduleCourse}
+                        onChange={(e) => setModuleCourse(e.target.value)}
+                        className="w-full h-10 px-3 border border-gray-200 text-brand-dark font-medium rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-primary/25 focus:border-brand-primary"
+                      >
+                        {courses.map(c => (
+                          <option key={c.id} value={c.id}>{c.title}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="moduleTitle" className="text-xs font-bold text-gray-500 uppercase">Magaca Casharka (Title)</Label>
+                      <Input
+                        id="moduleTitle"
+                        type="text"
+                        placeholder="e.g. Introduction to Next.js"
+                        value={moduleTitle}
+                        onChange={(e) => setModuleTitle(e.target.value)}
+                        className="rounded-xl border-gray-200"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="moduleYoutubeId" className="text-xs font-bold text-gray-500 uppercase">YouTube Video ID (11 xaraf)</Label>
+                      <Input
+                        id="moduleYoutubeId"
+                        type="text"
+                        placeholder="e.g. dQw4w9WgXcQ"
+                        value={moduleYoutubeId}
+                        onChange={(e) => setModuleYoutubeId(e.target.value)}
+                        className="rounded-xl border-gray-200 font-mono"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="modulePoints" className="text-xs font-bold text-gray-500 uppercase">Dhibcaha Casharka (Points)</Label>
+                      <Input
+                        id="modulePoints"
+                        type="number"
+                        min="0"
+                        value={modulePoints}
+                        onChange={(e) => setModulePoints(parseInt(e.target.value) || 0)}
+                        className="rounded-xl border-gray-200"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full md:w-auto rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer"
+                  >
+                    <Plus className="h-5 w-5" />
+                    Ku Dar Casharka
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
+              <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Liiska Casharada (Course Modules)</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {videoList.length === 0 ? (
+                  <div className="py-12 text-center space-y-2">
+                    <PlayCircle className="h-11 w-11 text-gray-300 mx-auto" />
+                    <p className="text-gray-400 text-sm font-semibold">Wali ma jiraan casharo diiwaangashan.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead>
+                        <tr className="border-b border-gray-100 text-gray-500 text-xs font-bold uppercase tracking-wider">
+                          <th className="py-3.5 px-3">Koorsada</th>
+                          <th className="py-3.5 px-3">Title</th>
+                          <th className="py-3.5 px-3 text-center">Points</th>
+                          <th className="py-3.5 px-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50 font-medium">
+                        {videoList.map((v) => {
+                          const cTitle = courses.find(c => c.id === v.course_id)?.title || 'Unknown Course'
+                          return (
+                            <tr key={v.id} className="hover:bg-gray-50/50 transition-colors">
+                              <td className="py-4 px-3 text-xs font-bold text-gray-500 truncate max-w-[150px]" title={cTitle}>
+                                {cTitle}
+                              </td>
+                              <td className="py-4 px-3 font-extrabold text-brand-dark">
+                                {v.title}
+                                <div className="text-[10px] text-gray-400 font-mono mt-0.5">{v.youtube_id}</div>
+                              </td>
+                              <td className="py-4 px-3 text-center text-brand-primary font-bold">
+                                +{v.points_awarded}
+                              </td>
+                              <td className="py-4 px-3 text-right">
+                                <button
+                                  onClick={() => handleModuleDelete(v.id)}
+                                  className="text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors inline-flex"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          )
+                        })}
                       </tbody>
                     </table>
                   </div>

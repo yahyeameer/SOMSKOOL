@@ -7,11 +7,13 @@ import { BookOpen, KeyRound, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-re
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { t } = useLanguage()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -24,7 +26,7 @@ export default function RegisterPage() {
     const password = formData.get('password') as string
     const confirmPassword = formData.get('confirm_password') as string
     if (password !== confirmPassword) {
-      setError('Furayaasha aad qortay isku mid ma aha!')
+      setError(t('password_mismatch') || 'Furayaasha aad qortay isku mid ma aha!')
       setLoading(false)
       return
     }
@@ -52,14 +54,14 @@ export default function RegisterPage() {
         {/* Brand Focus */}
         <div className="space-y-6 relative z-10 my-auto">
           <Badge className="bg-white/10 hover:bg-white/10 text-white border border-white/20 px-4 py-1.5 rounded-full text-xs w-fit">
-            Waxbarasho Tayo Sare Leh
+            {t('quality_education')}
           </Badge>
           <h1 className="font-display text-5xl font-extrabold leading-tight tracking-tight">
             Build Your <br />
             <span className="text-brand-accent">Future.</span>
           </h1>
           <p className="text-white/80 text-base leading-relaxed max-w-md">
-            Abuuro aqoonsigaaga maanta. Baro tignoolajiyada, suuqgeynta, iyo naqshadeynta si aad u noqoto xirfadle ka mid ah hormoodka bulshadeena Soomaaliyeed.
+            {t('join_thousands')}
           </p>
         </div>
 
@@ -84,10 +86,10 @@ export default function RegisterPage() {
               <span className="font-display text-xl font-bold tracking-tight text-brand-dark">SOMSKOOL</span>
             </div>
             <h2 className="font-display text-3xl font-extrabold text-brand-dark">
-              Samayso Koonto
+              {t('create_account')}
             </h2>
             <p className="text-gray-400 text-sm font-semibold">
-              Kaliya buuxi macluumaadka hoose si aad u bilowdo safarkaaga.
+              {t('register_prompt')}
             </p>
           </div>
 
@@ -95,20 +97,20 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Full Name field */}
             <div className="space-y-1">
-              <Label htmlFor="full_name" className="text-xs font-bold text-gray-500 uppercase">Magacaaga oo Buuxa</Label>
+              <Label htmlFor="full_name" className="text-xs font-bold text-gray-500 uppercase">{t('full_name')}</Label>
               <Input
                 id="full_name"
                 name="full_name"
                 type="text"
                 required
-                placeholder="e.g. Maxamed Axmed"
+                placeholder={t('name_placeholder')}
                 className="bg-white border-gray-200 text-brand-dark font-medium rounded-xl focus-visible:ring-brand-primary"
               />
             </div>
 
             {/* Email field */}
             <div className="space-y-1">
-              <Label htmlFor="email" className="text-xs font-bold text-gray-500 uppercase">Iimaylkaaga (Email)</Label>
+              <Label htmlFor="email" className="text-xs font-bold text-gray-500 uppercase">{t('email_label')}</Label>
               <Input
                 id="email"
                 name="email"
@@ -123,14 +125,14 @@ export default function RegisterPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Pass 1 */}
               <div className="space-y-1">
-                <Label htmlFor="password" className="text-xs font-bold text-gray-500 uppercase">Fure (Password)</Label>
+                <Label htmlFor="password" className="text-xs font-bold text-gray-500 uppercase">{t('password')}</Label>
                 <div className="relative">
                   <Input
                     id="password"
                     name="password"
                     type={showPassword ? 'text' : 'password'}
                     required
-                    placeholder="Geli fure"
+                    placeholder={t('password_placeholder')}
                     className="bg-white border-gray-200 text-brand-dark pr-10 font-medium rounded-xl focus-visible:ring-brand-primary"
                   />
                   <button
@@ -144,13 +146,13 @@ export default function RegisterPage() {
               </div>
               {/* Pass 2 */}
               <div className="space-y-1">
-                <Label htmlFor="confirm_password" className="text-xs font-bold text-gray-500 uppercase">Hubi Furaha</Label>
+                <Label htmlFor="confirm_password" className="text-xs font-bold text-gray-500 uppercase">{t('confirm_password')}</Label>
                 <Input
                   id="confirm_password"
                   name="confirm_password"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder="Geli fure mar kale"
+                  placeholder={t('confirm_password_placeholder')}
                   className="bg-white border-gray-200 text-brand-dark font-medium rounded-xl focus-visible:ring-brand-primary"
                 />
               </div>
@@ -178,19 +180,19 @@ export default function RegisterPage() {
               {loading ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Samaynayaa...
+                  {t('registering')}
                 </>
               ) : (
-                'Abuur Koonto (Register)'
+                t('register_button')
               )}
             </Button>
           </form>
 
           {/* Login Option */}
           <div className="text-center pt-2 text-sm text-gray-500 font-semibold">
-            Horay ma isu diiwangalisay?{' '}
+            {t('already_registered')}{' '}
             <Link href="/login" className="text-brand-primary hover:underline font-bold">
-              Soo gal (Login) hadda →
+              {t('login_now')}
             </Link>
           </div>
         </div>

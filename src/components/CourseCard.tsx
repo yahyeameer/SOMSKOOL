@@ -4,7 +4,8 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Course } from '@/types'
-import { Heart, Star, Clock, ArrowRight } from 'lucide-react'
+import { Heart, Star, Clock, ArrowRight, Users } from 'lucide-react'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -15,6 +16,7 @@ interface CourseCardProps {
 
 export default function CourseCard({ course }: CourseCardProps) {
   const [wishlist, setWishlist] = useState(false)
+  const { t } = useLanguage()
 
   const getDifficultyStyles = (level: string) => {
     switch (level) {
@@ -29,16 +31,9 @@ export default function CourseCard({ course }: CourseCardProps) {
     }
   }
 
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60)
-    if (hours > 0) {
-      return `${hours} saacadood`
-    }
-    return `${minutes} daqiiqo`
-  }
-
   return (
-    <Card className="overflow-hidden border border-border bg-card rounded-2xl shadow-sm hover-lift group flex flex-col h-full">
+    <Card className="overflow-hidden border border-white/20 bg-white/80 backdrop-blur-xl rounded-3xl shadow-lg shadow-brand-primary/5 hover:shadow-2xl hover:shadow-brand-primary/20 transition-all duration-500 ease-out hover:-translate-y-2 group flex flex-col h-full relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 pointer-events-none z-0"></div>
       {/* Thumbnail Container */}
       <div className="relative aspect-video w-full overflow-hidden bg-muted">
         <Image
@@ -52,7 +47,7 @@ export default function CourseCard({ course }: CourseCardProps) {
         {/* Difficulty Badge */}
         <div className="absolute top-4 left-4 z-10">
           <Badge className={`font-semibold rounded-full px-3 py-1 text-xs shadow-sm ${getDifficultyStyles(course.level)}`}>
-            {course.level}
+            {t(course.level.toLowerCase())}
           </Badge>
         </div>
 
@@ -78,18 +73,18 @@ export default function CourseCard({ course }: CourseCardProps) {
               <Star className="h-4 w-4 fill-brand-accent" />
             </div>
             <span className="text-brand-dark font-bold">{course.rating.toFixed(1)}</span>
-            <span className="text-gray-400">({course.total_students}+ barte)</span>
+            <span className="text-gray-400">({course.total_students}+ {t('students_label')})</span>
           </div>
           
           <div className="flex items-center gap-1.5 text-gray-500 font-medium">
             <Clock className="h-3.5 w-3.5" />
-            <span>{formatDuration(course.duration_minutes)}</span>
+            <span>{Math.floor(course.duration_minutes / 60)} {t('hours')} {course.duration_minutes % 60} {t('minutes')}</span>
           </div>
         </div>
 
         {/* Title */}
         <h3 className="font-display text-lg font-bold text-brand-dark leading-snug group-hover:text-brand-primary transition-colors line-clamp-2 mb-4">
-          <Link href={`/courses?q=${encodeURIComponent(course.title)}`}>
+          <Link href={`/courses/${course.slug}/learn`}>
             {course.title}
           </Link>
         </h3>
@@ -113,19 +108,19 @@ export default function CourseCard({ course }: CourseCardProps) {
               <span className="text-xs font-bold text-brand-dark">
                 {course.instructor_name}
               </span>
-              <span className="text-[10px] text-gray-400 font-medium">Bare</span>
+              <span className="text-[10px] text-gray-400 font-medium">{t('instructor')}</span>
             </div>
           </div>
 
           {/* Pricing & CTA */}
           <div className="flex flex-col items-end">
             <span className="text-base font-extrabold text-brand-primary font-display leading-tight">
-              {course.is_free ? 'Bilaash' : `$${course.price.toFixed(2)}`}
+              {course.is_free ? t('free') : `$${course.price.toFixed(2)}`}
             </span>
             <Link
               href={
                 course.is_free
-                  ? `/courses?q=${encodeURIComponent(course.title)}`
+                  ? `/courses/${course.slug}/learn`
                   : `/payment?courseId=${course.id}&title=${encodeURIComponent(course.title)}&price=${course.price}`
               }
               className="flex items-center gap-1 text-[11px] font-bold text-brand-primary hover:text-brand-primary-dark transition-all mt-1 group/btn"

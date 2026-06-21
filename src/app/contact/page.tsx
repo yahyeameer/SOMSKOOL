@@ -1,6 +1,9 @@
+'use client'
+
 import React from 'react'
 import ContactForm from '@/components/ContactForm'
 import { MapPin, Mail, Phone, Clock } from 'lucide-react'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -49,16 +52,18 @@ const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
 )
 
 export default function ContactPage() {
+  const { t } = useLanguage()
+
   return (
     <div className="flex flex-col w-full font-sans">
       {/* 📞 Contact Hero Banner */}
       <section className="bg-brand-primary py-16 text-center text-white relative overflow-hidden">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-3 relative z-10">
           <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
-            Nala Soo Xiriir
+            {t('contact_title')}
           </h1>
           <p className="text-white/80 text-sm sm:text-base max-w-xl mx-auto font-medium">
-            Su&apos;aal, talo, ama taageero? Kooxdayda ayaa diyaar ah inay ku caawiso.
+            {t('contact_subtitle')}
           </p>
         </div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.05),transparent)]" />
@@ -71,10 +76,10 @@ export default function ContactPage() {
         <div className="space-y-10 text-left">
           <div className="space-y-3">
             <h2 className="font-display text-2xl font-extrabold text-brand-dark">
-              Waxaan halkan u joognaa inaan ku caawino
+              {t('contact_heading')}
             </h2>
             <p className="text-gray-500 text-sm leading-relaxed font-medium max-w-md">
-              Su&apos;aalo ku saabsan koorsooyin, lacag-bixin, ama taageero fasalka? Nala soo xiriir habka kugu habboon.
+              {t('contact_description')}
             </p>
           </div>
 
@@ -86,7 +91,7 @@ export default function ContactPage() {
                 <MapPin className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-brand-dark">Goobta</h4>
+                <h4 className="text-sm font-bold text-brand-dark">{t('location')}</h4>
                 <p className="text-xs text-gray-500 font-medium mt-0.5">Hargeisa, Somaliland</p>
               </div>
             </div>
@@ -97,7 +102,7 @@ export default function ContactPage() {
                 <Mail className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-brand-dark">Iimaylka</h4>
+                <h4 className="text-sm font-bold text-brand-dark">{t('email_label')}</h4>
                 <a href="mailto:support@somskool.com" className="text-xs text-brand-primary font-semibold hover:underline mt-0.5 block">
                   support@somskool.com
                 </a>
@@ -110,7 +115,7 @@ export default function ContactPage() {
                 <Phone className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-brand-dark">WhatsApp</h4>
+                <h4 className="text-sm font-bold text-brand-dark">{t('whatsapp')}</h4>
                 <a href="https://wa.me/25263XXXXXXX" target="_blank" rel="noopener noreferrer" className="text-xs text-brand-primary font-semibold hover:underline mt-0.5 block">
                   +252 63 XXX XXXX
                 </a>
@@ -121,7 +126,7 @@ export default function ContactPage() {
           {/* Social Row */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-              Naga raac baraha bulshada
+              {t('follow_social')}
             </h4>
             <div className="flex items-center gap-3">
               <a href="#" className="h-10 w-10 rounded-full bg-brand-primary/5 hover:bg-brand-primary hover:text-white text-brand-primary flex items-center justify-center transition-all">
@@ -140,20 +145,20 @@ export default function ContactPage() {
           <div className="bg-brand-primary/[0.02] border border-brand-primary/10 rounded-xl p-5 space-y-3">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-brand-primary" />
-              <h4 className="text-sm font-bold text-brand-dark">Saacadaha Shaqada</h4>
+              <h4 className="text-sm font-bold text-brand-dark">{t('working_hours')}</h4>
             </div>
             <div className="space-y-1.5 text-xs font-medium text-gray-500">
               <div className="flex items-center justify-between">
-                <span>Isniin – Jimce</span>
+                <span>{t('mon_fri')}</span>
                 <span className="font-bold text-brand-dark">8:00 AM – 6:00 PM (EAT)</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>Sabti</span>
+                <span>{t('saturday')}</span>
                 <span className="font-bold text-brand-dark">9:00 AM – 2:00 PM (EAT)</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>Axad</span>
-                <span className="font-bold text-red-400">Xidhan</span>
+                <span>{t('sunday')}</span>
+                <span className="font-bold text-red-400">{t('closed')}</span>
               </div>
             </div>
           </div>

@@ -1,32 +1,48 @@
 'use server'
 
-import { createClient, isMock } from '@/lib/supabase/server'
-import { mockDb } from '@/lib/supabase/mock'
+import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 export async function getSessionUser() {
+  // First check cookie cache for performance
   const cookieStore = await cookies()
   const userCookie = cookieStore.get('somskool_user')
   if (userCookie?.value) {
     try {
       return JSON.parse(userCookie.value)
     } catch {
-      return null
+      // Invalid cookie, fall through to Supabase check
     }
   }
 
-  if (isMock) {
-    return mockDb.getCurrentUser()
+  // Check real Supabase session
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    // Fetch profile from database
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single()
+
+    const sessionUser = profile || {
+      id: user.id,
+      full_name: user.user_metadata?.full_name || 'Student',
+      role: 'student',
+      points: 0
+    }
+
+    // Cache in cookie for next requests
+    cookieStore.set('somskool_user', JSON.stringify(sessionUser), { path: '/', maxAge: 604800 })
+
+    return sessionUser
+  } catch {
+    return null
   }
-
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-
-  // Fetch profile
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-  return profile || { id: user.id, full_name: user.user_metadata.full_name || 'Student', role: 'student' }
 }
 
 export async function signIn(formData: FormData) {
@@ -37,27 +53,31 @@ export async function signIn(formData: FormData) {
     return { error: 'Fadlan buuxi dhamaan meelaha banaan' }
   }
 
-  if (isMock) {
-    const { data, error } = mockDb.login(email)
-    if (error) return { error: error.message }
-    
-    // Set cookie on server side so middleware is updated
-    const cookieStore = await cookies()
-    cookieStore.set('somskool_user', JSON.stringify(data.user), { path: '/', maxAge: 604800 })
-    
-    redirect('/courses')
-  }
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
 
-  const supabase = await createClient()
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-  if (error) return { error: error.message }
+    // Get user profile to cache in cookie
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single()
 
-  // Get user profile to cache in cookie for middleware performance
-  if (data.user) {
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single()
-    const cachedUser = profile || { id: data.user.id, full_name: data.user.user_metadata.full_name || 'Student', role: 'student' }
-    const cookieStore = await cookies()
-    cookieStore.set('somskool_user', JSON.stringify(cachedUser), { path: '/', maxAge: 604800 })
+      const cachedUser = profile || {
+        id: data.user.id,
+        full_name: data.user.user_metadata?.full_name || 'Student',
+        role: 'student',
+        points: 0
+      }
+
+      const cookieStore = await cookies()
+      cookieStore.set('somskool_user', JSON.stringify(cachedUser), { path: '/', maxAge: 604800 })
+    }
+  } catch (err: any) {
+    return { error: err.message || 'Login failed. Please check your credentials.' }
   }
 
   redirect('/courses')
@@ -77,32 +97,31 @@ export async function signUp(formData: FormData) {
     return { error: 'Furayaasha iskuma mid aha' }
   }
 
-  if (isMock) {
-    const { data, error } = mockDb.register(fullName, email)
-    if (error) return { error: error.message }
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName } }
+    })
 
-    const cookieStore = await cookies()
-    cookieStore.set('somskool_user', JSON.stringify(data.user), { path: '/', maxAge: 604800 })
+    if (error) throw error
 
-    redirect('/courses')
-  }
-
-  const supabase = await createClient()
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { data: { full_name: fullName } }
-  })
-  
-  if (error) return { error: error.message }
-
-  // Supabase trigger automatically creates a profile.
-  // Use data.user from signUp response instead of getUser() because cookies are not flushed yet.
-  if (data.user) {
-    const role = email.toLowerCase().includes('admin') ? 'admin' : 'student';
-    const cachedUser = { id: data.user.id, full_name: fullName, role, avatar_url: '' }
-    const cookieStore = await cookies()
-    cookieStore.set('somskool_user', JSON.stringify(cachedUser), { path: '/', maxAge: 604800 })
+    if (data.user) {
+      // The DB trigger will create the profile automatically.
+      // Fetch it (or use a fallback until trigger fires)
+      const cachedUser = {
+        id: data.user.id,
+        full_name: fullName,
+        role: 'student',
+        avatar_url: '',
+        points: 0
+      }
+      const cookieStore = await cookies()
+      cookieStore.set('somskool_user', JSON.stringify(cachedUser), { path: '/', maxAge: 604800 })
+    }
+  } catch (err: any) {
+    return { error: err.message || 'Registration failed. Please try again.' }
   }
 
   redirect('/courses')
@@ -112,12 +131,12 @@ export async function signOut() {
   const cookieStore = await cookies()
   cookieStore.delete('somskool_user')
 
-  if (isMock) {
-    mockDb.logout()
-    redirect('/')
+  try {
+    const supabase = await createClient()
+    await supabase.auth.signOut()
+  } catch {
+    // Even if Supabase signout fails, we've cleared the cookie
   }
 
-  const supabase = await createClient()
-  await supabase.auth.signOut()
   redirect('/')
 }
