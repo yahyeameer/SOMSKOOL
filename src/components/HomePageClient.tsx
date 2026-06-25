@@ -4,7 +4,6 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import CourseCard from '@/components/CourseCard'
-import VideoModal from '@/components/VideoModal'
 import { Course } from '@/types'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -108,32 +107,20 @@ export default function HomePageClient({ courses, videoSettings }: HomePageClien
             </div>
           </div>
 
-          {/* Right Column (45%) — Video Preview */}
+          {/* Right Column (45%) — Hero Image */}
           <div className="lg:col-span-5 relative flex items-center justify-center">
-            {/* Video Thumbnail with Play */}
-            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-black/20 backdrop-blur-sm">
+            {/* Main Image */}
+            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-black/20 backdrop-blur-sm group">
               <Image
-                src={videoSettings.video_thumbnail_url || `https://img.youtube.com/vi/${videoSettings.youtube_id}/maxresdefault.jpg`}
-                alt="SomSkool promotional video"
+                src="/hero_image_realistic.png"
+                alt="SomSkool Academy Professional Illustration"
                 fill
-                className="object-cover"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
                 sizes="(max-width: 768px) 100vw, 40vw"
                 priority
               />
               
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-              
-              <div className="absolute inset-0 flex items-center justify-center">
-                <VideoModal youtubeId={videoSettings.youtube_id} channelName={videoSettings.channel_name} />
-              </div>
-              
-              <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-                  <span className="text-white/90 text-xs font-bold">{videoSettings.video_title || t('watch_intro')}</span>
-                </div>
-                <span className="text-white/60 text-xs font-semibold">{videoSettings.channel_name}</span>
-              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/40 to-transparent pointer-events-none" />
             </div>
 
             {/* Floating completed Course toast */}

@@ -46,12 +46,17 @@ export async function getSessionUser() {
 }
 
 export async function signIn(formData: FormData) {
-  const email = formData.get('email') as string
+  const rawInput = formData.get('emailOrPhone') as string
   const password = formData.get('password') as string
 
-  if (!email || !password) {
+  if (!rawInput || !password) {
     return { error: 'Fadlan buuxi dhamaan meelaha banaan' }
   }
+
+  // Auto-detect email or phone
+  const email = rawInput.includes('@') 
+    ? rawInput 
+    : `${rawInput.replace(/[^0-9+]/g, '')}@users.somskool.com`
 
   try {
     const supabase = await createClient()
@@ -85,11 +90,12 @@ export async function signIn(formData: FormData) {
 
 export async function signUp(formData: FormData) {
   const fullName = formData.get('full_name') as string
-  const email = formData.get('email') as string
+  const rawInput = formData.get('emailOrPhone') as string
   const password = formData.get('password') as string
   const confirmPassword = formData.get('confirm_password') as string
+  const role = formData.get('role') as string || 'student'
 
-  if (!fullName || !email || !password) {
+  if (!fullName || !rawInput || !password) {
     return { error: 'Fadlan buuxi dhamaan meelaha banaan' }
   }
 
@@ -97,12 +103,17 @@ export async function signUp(formData: FormData) {
     return { error: 'Furayaasha iskuma mid aha' }
   }
 
+  // Auto-detect email or phone
+  const email = rawInput.includes('@') 
+    ? rawInput 
+    : `${rawInput.replace(/[^0-9+]/g, '')}@users.somskool.com`
+
   try {
     const supabase = await createClient()
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } }
+      options: { data: { full_name: fullName, requested_role: role } }
     })
 
     if (error) throw error

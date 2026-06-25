@@ -85,15 +85,15 @@ export default function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email field */}
+            {/* Email or Phone field */}
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs font-bold text-gray-500 uppercase">{t('email_label')}</Label>
+              <Label htmlFor="emailOrPhone" className="text-xs font-bold text-gray-500 uppercase">{t('email_or_phone_label')}</Label>
               <Input
-                id="email"
-                name="email"
-                type="email"
+                id="emailOrPhone"
+                name="emailOrPhone"
+                type="text"
                 required
-                placeholder="magac@somskool.com"
+                placeholder={t('email_or_phone_placeholder')}
                 className="bg-white border-gray-200 text-brand-dark font-medium rounded-xl focus-visible:ring-brand-primary"
               />
             </div>

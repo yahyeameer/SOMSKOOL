@@ -103,6 +103,16 @@ export default function Navbar({ user }: NavbarProps) {
                 {language === 'en' ? 'EN' : 'SO'}
               </button>
 
+              {user?.role === 'admin' && (
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-2 text-sm font-bold text-brand-primary bg-brand-primary/10 hover:bg-brand-primary/20 transition-colors px-3 py-2 rounded-lg"
+                >
+                  <Shield className="h-4 w-4" />
+                  {t('admin')}
+                </Link>
+              )}
+
               {user ? (
                 <div className="flex items-center gap-3 cursor-pointer" onClick={() => setIsOpen(true)}>
                   <div className="flex flex-col text-right">

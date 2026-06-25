@@ -35,13 +35,15 @@ interface AdminPanelProps {
   videoSettings: { youtube_id: string; channel_name: string; channel_url: string; video_title: string; video_thumbnail_url: string }
   initialStaff?: any[]
   courseVideos?: CourseVideo[]
+  students?: any[]
 }
 
-export default function AdminPanel({ payments: initialPayments, documents: initialDocs, courses, videoSettings, initialStaff = [], courseVideos: initialVideos = [] }: AdminPanelProps) {
+export default function AdminPanel({ payments: initialPayments, documents: initialDocs, courses: initialCourses, videoSettings, initialStaff = [], courseVideos: initialVideos = [], students: initialStudents = [] }: AdminPanelProps) {
   const { t } = useLanguage()
-  const [activeTab, setActiveTab] = useState<'payments' | 'docs' | 'video' | 'staff' | 'modules'>('payments')
+  const [activeTab, setActiveTab] = useState<'payments' | 'docs' | 'video' | 'staff' | 'modules' | 'students' | 'courses'>('payments')
   const [payments, setPayments] = useState<Payment[]>(initialPayments)
   const [documents, setDocuments] = useState<any[]>(initialDocs)
+  const [courses, setCourses] = useState<Course[]>(initialCourses)
 
   // Tab 2: Document Form states
   const [docTitle, setDocTitle] = useState('')
@@ -68,11 +70,22 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
   // Tab 5: Course Modules states
   const [videoList, setVideoList] = useState<CourseVideo[]>(initialVideos)
-  const [moduleCourse, setModuleCourse] = useState(courses[0]?.id || '')
+  const [moduleCourse, setModuleCourse] = useState(initialCourses[0]?.id || '')
   const [moduleTitle, setModuleTitle] = useState('')
   const [moduleYoutubeId, setModuleYoutubeId] = useState('')
   const [modulePoints, setModulePoints] = useState(10)
   const [moduleMessage, setModuleMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+
+  // Tab 6: Students
+  const [students, setStudents] = useState<any[]>(initialStudents)
+  const [editingStudentId, setEditingStudentId] = useState<string | null>(null)
+  const [editingPoints, setEditingPoints] = useState<number>(0)
+
+  // Tab 7: Course Management
+  const [courseTitle, setCourseTitle] = useState('')
+  const [courseSlug, setCourseSlug] = useState('')
+  const [coursePrice, setCoursePrice] = useState(0)
+  const [courseMessage, setCourseMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   const [isPending, startTransition] = useTransition()
 
@@ -247,6 +260,79 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
     })
   }
 
+  // Tab 6 Action: Update Student Points
+  const handleUpdatePoints = async (id: string) => {
+    startTransition(async () => {
+      const { updateStudentPoints } = await import('@/lib/actions/users')
+      const res = await updateStudentPoints(id, editingPoints)
+      if (res.success) {
+        setStudents(prev => prev.map(s => s.id === id ? { ...s, points: editingPoints } : s))
+        setEditingStudentId(null)
+      } else {
+        alert(res.error || 'Khalad ayaa dhacay')
+      }
+    })
+  }
+
+  // Tab 7 Action: Create Course
+  const handleCourseSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setCourseMessage(null)
+
+    if (!courseTitle || !courseSlug) {
+      setCourseMessage({ type: 'error', text: 'Fadlan buuxi magaca iyo slug-ga.' })
+      return
+    }
+
+    startTransition(async () => {
+      const { createCourse } = await import('@/lib/actions/admin')
+      const res = await createCourse({
+        title: courseTitle,
+        slug: courseSlug,
+        price: coursePrice
+      })
+
+      if (res.success) {
+        setCourseMessage({ type: 'success', text: 'Koorsada waa la abuuray si guul ah!' })
+        // Optimistic UI update
+        setCourses(prev => [...prev, {
+          id: 'temp-' + Math.random(),
+          title: courseTitle,
+          slug: courseSlug,
+          price: coursePrice,
+          is_free: coursePrice === 0,
+          thumbnail_url: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80',
+          level: 'Beginner',
+          duration_minutes: 60,
+          instructor_name: 'Admin',
+          instructor_avatar: '',
+          rating: 0,
+          total_students: 0,
+          is_published: true,
+          created_at: new Date().toISOString()
+        }])
+        setCourseTitle('')
+        setCourseSlug('')
+        setCoursePrice(0)
+      } else {
+        setCourseMessage({ type: 'error', text: res.error || 'Khalad ayaa dhacay.' })
+      }
+    })
+  }
+
+  const handleCourseDelete = async (id: string) => {
+    if (!confirm('Ma hubtaa inaad tirtirto koorsadan?')) return
+    startTransition(async () => {
+      const { deleteCourse } = await import('@/lib/actions/admin')
+      const res = await deleteCourse(id)
+      if (res.success) {
+        setCourses(prev => prev.filter(c => c.id !== id))
+      } else {
+        alert(res.error || 'Khalad ayaa dhacay')
+      }
+    })
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 font-sans">
       
@@ -315,6 +401,30 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         >
           <Users className="h-5 w-5" />
           <span>{t('staff')}</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('students')}
+          className={`flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-semibold transition-all text-left ${
+            activeTab === 'students'
+              ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/15'
+              : 'bg-white hover:bg-gray-50 border border-border text-brand-dark'
+          }`}
+        >
+          <Users className="h-5 w-5" />
+          <span>Ardayda</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('courses')}
+          className={`flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-semibold transition-all text-left ${
+            activeTab === 'courses'
+              ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/15'
+              : 'bg-white hover:bg-gray-50 border border-border text-brand-dark'
+          }`}
+        >
+          <FileCheck className="h-5 w-5" />
+          <span>Courses</span>
         </button>
       </div>
 
@@ -940,6 +1050,195 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                             </tr>
                           )
                         })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* ================= TAB 6: STUDENTS ================= */}
+        {activeTab === 'students' && (
+          <div className="space-y-8 text-left">
+            <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
+              <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Ardayda (Students)</CardTitle>
+                <CardDescription className="text-gray-400 font-medium">Maamul ardayda oo wax ka bedel dhibcaha ay leeyihiin.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                {students.length === 0 ? (
+                  <div className="py-12 text-center space-y-2">
+                    <Users className="h-11 w-11 text-gray-300 mx-auto" />
+                    <p className="text-gray-400 text-sm font-semibold">Wali ma jiraan arday diiwaangashan.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead>
+                        <tr className="border-b border-gray-100 text-gray-500 text-xs font-bold uppercase tracking-wider">
+                          <th className="py-3.5 px-3">Magaca</th>
+                          <th className="py-3.5 px-3">Email</th>
+                          <th className="py-3.5 px-3">Dhibcaha (Points)</th>
+                          <th className="py-3.5 px-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50 font-medium">
+                        {students.map((s) => (
+                          <tr key={s.id} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="py-4 px-3 font-extrabold text-brand-dark">
+                              {s.full_name}
+                            </td>
+                            <td className="py-4 px-3 text-gray-500">
+                              {s.email || 'Email missing'}
+                            </td>
+                            <td className="py-4 px-3">
+                              {editingStudentId === s.id ? (
+                                <Input
+                                  type="number"
+                                  value={editingPoints}
+                                  onChange={(e) => setEditingPoints(parseInt(e.target.value) || 0)}
+                                  className="w-24 h-8"
+                                />
+                              ) : (
+                                <span className="font-bold text-brand-primary">{s.points || 0}</span>
+                              )}
+                            </td>
+                            <td className="py-4 px-3 text-right">
+                              {editingStudentId === s.id ? (
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button size="sm" onClick={() => handleUpdatePoints(s.id)} className="h-8">Keydi</Button>
+                                  <Button size="sm" variant="ghost" onClick={() => setEditingStudentId(null)} className="h-8">Kanoqo</Button>
+                                </div>
+                              ) : (
+                                <Button size="sm" variant="outline" onClick={() => {
+                                  setEditingStudentId(s.id)
+                                  setEditingPoints(s.points || 0)
+                                }} className="h-8">
+                                  Wax ka bedel
+                                </Button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* ================= TAB 7: COURSES ================= */}
+        {activeTab === 'courses' && (
+          <div className="space-y-8 text-left">
+            <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
+              <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Abuur Koorso Cusub</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <form onSubmit={handleCourseSubmit} className="space-y-5">
+                  {courseMessage && (
+                    <div className={`p-4 rounded-xl flex items-start gap-2.5 text-sm font-semibold ${
+                      courseMessage.type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-500 border border-red-100'
+                    }`}>
+                      {courseMessage.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                      <span>{courseMessage.text}</span>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="cTitle" className="text-xs font-bold text-gray-500 uppercase">Magaca Koorsada</Label>
+                      <Input
+                        id="cTitle"
+                        type="text"
+                        placeholder="e.g. Next.js Masterclass"
+                        value={courseTitle}
+                        onChange={(e) => setCourseTitle(e.target.value)}
+                        className="rounded-xl border-gray-200"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="cSlug" className="text-xs font-bold text-gray-500 uppercase">URL Slug</Label>
+                      <Input
+                        id="cSlug"
+                        type="text"
+                        placeholder="e.g. nextjs-masterclass"
+                        value={courseSlug}
+                        onChange={(e) => setCourseSlug(e.target.value)}
+                        className="rounded-xl border-gray-200"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="cPrice" className="text-xs font-bold text-gray-500 uppercase">Qiimaha (Price in $)</Label>
+                      <Input
+                        id="cPrice"
+                        type="number"
+                        min="0"
+                        placeholder="e.g. 50 (or 0 for free)"
+                        value={coursePrice}
+                        onChange={(e) => setCoursePrice(parseInt(e.target.value) || 0)}
+                        className="rounded-xl border-gray-200"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full md:w-auto rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer"
+                  >
+                    <Plus className="h-5 w-5" />
+                    Samee Koorsada
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
+              <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Koorsooyinka Hada Jira</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {courses.length === 0 ? (
+                  <div className="py-12 text-center space-y-2">
+                    <FileCheck className="h-11 w-11 text-gray-300 mx-auto" />
+                    <p className="text-gray-400 text-sm font-semibold">Wali ma jiraan koorsooyin.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead>
+                        <tr className="border-b border-gray-100 text-gray-500 text-xs font-bold uppercase tracking-wider">
+                          <th className="py-3.5 px-3">Title</th>
+                          <th className="py-3.5 px-3">Price</th>
+                          <th className="py-3.5 px-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50 font-medium">
+                        {courses.map((c) => (
+                          <tr key={c.id} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="py-4 px-3 font-extrabold text-brand-dark">
+                              {c.title}
+                            </td>
+                            <td className="py-4 px-3">
+                              {c.is_free ? 'Free' : `$${c.price}`}
+                            </td>
+                            <td className="py-4 px-3 text-right">
+                              <button
+                                onClick={() => handleCourseDelete(c.id)}
+                                className="text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors inline-flex"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>

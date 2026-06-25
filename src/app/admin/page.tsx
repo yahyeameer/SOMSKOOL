@@ -2,6 +2,7 @@ import React from 'react'
 import { getSessionUser } from '@/lib/actions/auth'
 import { getCourses } from '@/lib/actions/courses'
 import { getStaffMembers, getPayments, getDocuments, getVideoSettings, getAllCourseVideos } from '@/lib/actions/admin'
+import { getAllStudents } from '@/lib/actions/users'
 import { redirect } from 'next/navigation'
 import AdminPanel from '@/components/AdminPanel'
 import { Shield } from 'lucide-react'
@@ -15,6 +16,7 @@ export default async function AdminPage() {
 
   const { data: courses = [] } = await getCourses()
   const { data: staff = [] } = await getStaffMembers()
+  const { data: students = [] } = await getAllStudents()
   const payments = await getPayments()
   const documents = await getDocuments()
   const videoSettings = await getVideoSettings()
@@ -51,6 +53,7 @@ export default async function AdminPage() {
           courseVideos={courseVideos}
           videoSettings={videoSettings}
           initialStaff={staff || []}
+          students={students || []}
         />
       </section>
     </div>

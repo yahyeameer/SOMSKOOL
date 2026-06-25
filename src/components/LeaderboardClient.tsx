@@ -8,10 +8,12 @@ import { Profile } from '@/types'
 export default function LeaderboardClient({ leaderboard }: { leaderboard: Profile[] }) {
   const { t } = useLanguage()
 
-  const getRankBadge = (index: number) => {
-    if (index === 0) return { icon: Crown, color: 'from-yellow-400 to-amber-500', bg: 'bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200', label: t('rank_gold') }
-    if (index === 1) return { icon: Medal, color: 'from-gray-300 to-gray-400', bg: 'bg-gradient-to-br from-gray-50 to-slate-100 border-gray-200', label: t('rank_silver') }
-    if (index === 2) return { icon: Medal, color: 'from-orange-400 to-amber-600', bg: 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200', label: t('rank_bronze') }
+  const getRankBadge = (index: number, points: number) => {
+    if (points > 0) {
+      if (index === 0) return { icon: Crown, color: 'from-yellow-400 to-amber-500', bg: 'bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200', label: t('rank_gold') }
+      if (index === 1) return { icon: Medal, color: 'from-gray-300 to-gray-400', bg: 'bg-gradient-to-br from-gray-50 to-slate-100 border-gray-200', label: t('rank_silver') }
+      if (index === 2) return { icon: Medal, color: 'from-orange-400 to-amber-600', bg: 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200', label: t('rank_bronze') }
+    }
     return { icon: Star, color: 'from-brand-primary to-[#4834D4]', bg: 'bg-white border-gray-200', label: t('rank_member') }
   }
 
@@ -51,7 +53,7 @@ export default function LeaderboardClient({ leaderboard }: { leaderboard: Profil
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20 w-full">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {leaderboard.slice(0, 3).map((student, index) => {
-            const badge = getRankBadge(index)
+            const badge = getRankBadge(index, student.points || 0)
             const Icon = badge.icon
             return (
               <div
@@ -105,7 +107,7 @@ export default function LeaderboardClient({ leaderboard }: { leaderboard: Profil
               </thead>
               <tbody className="divide-y divide-gray-50 font-medium">
                 {leaderboard.map((student, index) => {
-                  const badge = getRankBadge(index)
+                  const badge = getRankBadge(index, student.points || 0)
                   return (
                     <tr key={student.id} className="hover:bg-brand-primary/[0.02] transition-colors">
                       <td className="py-4 px-6">

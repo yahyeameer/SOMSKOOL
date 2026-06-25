@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getSessionUser } from './auth'
 import { revalidatePath } from 'next/cache'
+import { Course } from '@/types'
 
 /**
  * Server action to approve or reject student payment requests.
@@ -357,5 +358,59 @@ export async function getAllCourseVideos() {
     return data || []
   } catch (err) {
     return []
+  }
+}
+
+export async function createCourse(courseData: Partial<Course>) {
+  const user = await getSessionUser()
+  if (!user || user.role !== 'admin') return { error: 'Unauthorized' }
+
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase
+      .from('courses')
+      .insert({
+        title: courseData.title,
+        slug: courseData.slug,
+        description: courseData.description,
+        thumbnail_url: courseData.thumbnail_url || 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80',
+        price: courseData.price || 0,
+        is_free: courseData.price === 0,
+        level: courseData.level || 'Beginner',
+        duration_minutes: courseData.duration_minutes || 60,
+        category_slug: courseData.category_slug || 'computer-science',
+        instructor_name: courseData.instructor_name || user.full_name,
+        instructor_avatar: courseData.instructor_avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.full_name,
+        is_published: true
+      })
+
+    if (error) throw error
+
+    revalidatePath('/admin')
+    revalidatePath('/courses')
+    return { success: true }
+  } catch (err: any) {
+    return { success: false, error: err.message }
+  }
+}
+
+export async function deleteCourse(id: string) {
+  const user = await getSessionUser()
+  if (!user || user.role !== 'admin') return { error: 'Unauthorized' }
+
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase
+      .from('courses')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+
+    revalidatePath('/admin')
+    revalidatePath('/courses')
+    return { success: true }
+  } catch (err: any) {
+    return { success: false, error: err.message }
   }
 }

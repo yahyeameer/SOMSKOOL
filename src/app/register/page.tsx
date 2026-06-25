@@ -108,17 +108,31 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Email field */}
+            {/* Email or Phone field */}
             <div className="space-y-1">
-              <Label htmlFor="email" className="text-xs font-bold text-gray-500 uppercase">{t('email_label')}</Label>
+              <Label htmlFor="emailOrPhone" className="text-xs font-bold text-gray-500 uppercase">{t('email_or_phone_label')}</Label>
               <Input
-                id="email"
-                name="email"
-                type="email"
+                id="emailOrPhone"
+                name="emailOrPhone"
+                type="text"
                 required
-                placeholder="magac@somskool.com"
+                placeholder={t('email_or_phone_placeholder')}
                 className="bg-white border-gray-200 text-brand-dark font-medium rounded-xl focus-visible:ring-brand-primary"
               />
+            </div>
+
+            {/* Role field */}
+            <div className="space-y-1">
+              <Label htmlFor="role" className="text-xs font-bold text-gray-500 uppercase">{t('role_label')}</Label>
+              <select
+                id="role"
+                name="role"
+                required
+                className="flex h-10 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-brand-dark font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+              >
+                <option value="student">{t('student_role')}</option>
+                <option value="teacher">{t('teacher_role')}</option>
+              </select>
             </div>
 
             {/* Password field */}

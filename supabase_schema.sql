@@ -29,7 +29,7 @@ BEGIN
   VALUES (
     new.id,
     COALESCE(new.raw_user_meta_data->>'full_name', 'Student'),
-    CASE WHEN new.email ILIKE '%admin%' THEN 'admin' WHEN new.email ILIKE '%teacher%' THEN 'teacher' ELSE 'student' END,
+    COALESCE(new.raw_user_meta_data->>'requested_role', 'student'),
     new.raw_user_meta_data->>'avatar_url'
   );
   RETURN new;

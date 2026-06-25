@@ -57,11 +57,8 @@ export default function FilterSidebar() {
 
   const categories = [
     { name: t('all_categories'), slug: 'all' },
-    { name: t('web_development'), slug: 'web-development' },
-    { name: t('ui_ux'), slug: 'ui-ux' },
-    { name: t('digital_marketing'), slug: 'digital-marketing' },
-    { name: t('data_science'), slug: 'data-science' },
-    { name: t('business'), slug: 'business' },
+    { name: t('computer_science'), slug: 'computer-science' },
+    { name: t('english_category'), slug: 'english' },
   ]
 
   const levels = [
