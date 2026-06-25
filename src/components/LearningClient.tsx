@@ -14,7 +14,12 @@ interface LearningClientProps {
 
 export default function LearningClient({ course, videos, progress: initialProgress }: LearningClientProps) {
   const [progress, setProgress] = useState<StudentProgress[]>(initialProgress)
-  const [activeVideoIndex, setActiveVideoIndex] = useState(0)
+  
+  // Find the first unwatched video to resume learning
+  const firstUnwatchedIndex = videos.findIndex(v => !initialProgress.some(p => p.video_id === v.id))
+  const initialIndex = firstUnwatchedIndex >= 0 ? firstUnwatchedIndex : Math.max(0, videos.length - 1)
+  
+  const [activeVideoIndex, setActiveVideoIndex] = useState(initialIndex)
   const [isPending, startTransition] = useTransition()
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
@@ -124,8 +129,11 @@ export default function LearningClient({ course, videos, progress: initialProgre
             {activeVideo && (
               <div className="space-y-6">
                 <div>
+                  <div className="mb-2 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-primary bg-brand-primary/10 px-2.5 py-1 rounded-md">
+                    <span>Episode {activeVideoIndex + 1}</span>
+                  </div>
                   <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-brand-dark mb-2">
-                    {activeVideo.order_index}. {activeVideo.title}
+                    {activeVideo.title}
                   </h2>
                   <div className="flex items-center gap-2 text-brand-primary font-bold bg-brand-primary/10 inline-flex px-3 py-1.5 rounded-full text-sm">
                     <Trophy className="h-4 w-4" />
@@ -212,7 +220,8 @@ export default function LearningClient({ course, videos, progress: initialProgre
                   </div>
                   <div className="flex-1">
                     <h4 className={`text-sm font-bold ${isActive ? 'text-brand-primary' : isLocked ? 'text-gray-500' : 'text-brand-dark'}`}>
-                      {index + 1}. {video.title}
+                      <span className="opacity-70 font-semibold text-xs block mb-0.5">Episode {index + 1}</span>
+                      {video.title}
                     </h4>
                     <p className="text-[11px] font-semibold text-gray-400 mt-1 uppercase tracking-wide">
                       {video.points_awarded} Dhibcood
