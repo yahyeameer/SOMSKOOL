@@ -503,3 +503,24 @@ export async function deleteCourse(id: string) {
     return { success: false, error: err.message }
   }
 }
+
+export async function toggleCoursePublish(id: string, isPublished: boolean) {
+  const user = await getSessionUser()
+  if (!user || user.role !== 'admin') return { error: 'Unauthorized' }
+
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase
+      .from('courses')
+      .update({ is_published: isPublished })
+      .eq('id', id)
+
+    if (error) throw error
+
+    revalidatePath('/admin')
+    revalidatePath('/courses')
+    return { success: true }
+  } catch (err: any) {
+    return { success: false, error: err.message }
+  }
+}

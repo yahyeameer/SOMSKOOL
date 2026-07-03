@@ -81,13 +81,13 @@ export default function Footer() {
               Waxaan u taaganahay inaan bulshada Soomaaliyeed u soo gudbino casharo tayo sare leh oo ku baxaya luuqadooda hooyo, si ay u dhistaan mustaqbal ifaya.
             </p>
             <div className="flex items-center gap-4">
-              <a href="#" className="h-10 w-10 rounded-full bg-white/5 hover:bg-brand-primary flex items-center justify-center transition-colors text-gray-400 hover:text-white">
+              <a href="https://facebook.com/somskool" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-white/5 hover:bg-brand-primary flex items-center justify-center transition-colors text-gray-400 hover:text-white">
                 <FacebookIcon className="h-5 w-5" />
               </a>
-              <a href="#" className="h-10 w-10 rounded-full bg-white/5 hover:bg-brand-primary flex items-center justify-center transition-colors text-gray-400 hover:text-white">
+              <a href="https://instagram.com/somskool" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-white/5 hover:bg-brand-primary flex items-center justify-center transition-colors text-gray-400 hover:text-white">
                 <InstagramIcon className="h-5 w-5" />
               </a>
-              <a href="#" className="h-10 w-10 rounded-full bg-white/5 hover:bg-brand-primary flex items-center justify-center transition-colors text-gray-400 hover:text-white">
+              <a href="https://linkedin.com/company/somskool" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-white/5 hover:bg-brand-primary flex items-center justify-center transition-colors text-gray-400 hover:text-white">
                 <LinkedinIcon className="h-5 w-5" />
               </a>
             </div>
@@ -166,8 +166,8 @@ export default function Footer() {
         <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/70 font-medium">
           <p>© {new Date().getFullYear()} SomSkool. Xuquuqda oo dhan waa dhowran tahay.</p>
           <div className="flex items-center gap-6">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+            <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</Link>
           </div>
         </div>
       </div>

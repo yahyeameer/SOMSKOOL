@@ -21,7 +21,9 @@ import {
   UserPlus,
   PlayCircle,
   Trash2,
-  LayoutTemplate
+  LayoutTemplate,
+  Eye,
+  EyeOff
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -347,6 +349,19 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       }
     })
   }
+
+  const handleCourseTogglePublish = async (id: string, currentStatus: boolean) => {
+    startTransition(async () => {
+      const { toggleCoursePublish } = await import('@/lib/actions/admin')
+      const res = await toggleCoursePublish(id, !currentStatus)
+      if (res.success) {
+        setCourses(prev => prev.map(c => c.id === id ? { ...c, is_published: !currentStatus } : c))
+      } else {
+        alert(res.error || 'Khalad ayaa dhacay')
+      }
+    })
+  }
+
 
   // Tab 8 Action: Save Pages
   const handlePageSubmit = async (e: React.FormEvent) => {
@@ -1278,11 +1293,21 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                           <tr key={c.id} className="hover:bg-gray-50/50 transition-colors">
                             <td className="py-4 px-3 font-extrabold text-brand-dark">
                               {c.title}
+                              {!c.is_published && (
+                                <span className="ml-2 text-[10px] bg-yellow-100 text-yellow-700 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Hidden</span>
+                              )}
                             </td>
                             <td className="py-4 px-3">
                               {c.is_free ? 'Free' : `$${c.price}`}
                             </td>
                             <td className="py-4 px-3 text-right">
+                              <button
+                                onClick={() => handleCourseTogglePublish(c.id, c.is_published)}
+                                className="mr-2 text-gray-500 hover:text-brand-primary bg-gray-50 hover:bg-gray-100 p-2 rounded-lg transition-colors inline-flex"
+                                title={c.is_published ? 'Hide Course' : 'Publish Course'}
+                              >
+                                {c.is_published ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                              </button>
                               <button
                                 onClick={() => handleCourseDelete(c.id)}
                                 className="text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors inline-flex"

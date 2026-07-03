@@ -113,13 +113,13 @@ export default function ContactClient({ settings }: { settings: any }) {
               {t('follow_social')}
             </h4>
             <div className="flex items-center gap-3">
-              <a href="#" className="h-10 w-10 rounded-full bg-brand-primary/5 hover:bg-brand-primary hover:text-white text-brand-primary flex items-center justify-center transition-all">
+              <a href="https://facebook.com/somskool" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-brand-primary/5 hover:bg-brand-primary hover:text-white text-brand-primary flex items-center justify-center transition-all">
                 <FacebookIcon className="h-5 w-5" />
               </a>
-              <a href="#" className="h-10 w-10 rounded-full bg-brand-primary/5 hover:bg-brand-primary hover:text-white text-brand-primary flex items-center justify-center transition-all">
+              <a href="https://instagram.com/somskool" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-brand-primary/5 hover:bg-brand-primary hover:text-white text-brand-primary flex items-center justify-center transition-all">
                 <InstagramIcon className="h-5 w-5" />
               </a>
-              <a href="#" className="h-10 w-10 rounded-full bg-brand-primary/5 hover:bg-brand-primary hover:text-white text-brand-primary flex items-center justify-center transition-all">
+              <a href="https://linkedin.com/company/somskool" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-brand-primary/5 hover:bg-brand-primary hover:text-white text-brand-primary flex items-center justify-center transition-all">
                 <LinkedinIcon className="h-5 w-5" />
               </a>
             </div>
