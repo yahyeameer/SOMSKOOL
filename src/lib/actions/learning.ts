@@ -81,32 +81,35 @@ export async function markVideoCompleted(videoId: string, courseId: string, poin
 
     if (insertError) throw insertError
 
-    // 3. Award points to the student profile
-    // Note: In Supabase, usually you use an RPC for atomic increment.
-    // If an RPC doesn't exist, we select then update (vulnerable to race conditions but okay for this app)
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('points')
-      .eq('id', user.id)
-      .single()
-
-    const currentPoints = profile?.points || 0
-    const newPoints = currentPoints + pointsToAward
-
+    // 3. Award points to the student profile atomically via RPC (with select-update fallback)
     const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ points: newPoints })
-      .eq('id', user.id)
+      .rpc('increment_points', { user_id: user.id, points_to_add: pointsToAward })
 
     if (updateError) {
-      console.error('Error updating points:', updateError.message)
-      // We don't throw here, the progress was still saved
+      console.warn('RPC increment_points failed, falling back to read-then-write:', updateError.message)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('points')
+        .eq('id', user.id)
+        .single()
+
+      const currentPoints = profile?.points || 0
+      const newPoints = currentPoints + pointsToAward
+
+      const { error: fallbackError } = await supabase
+        .from('profiles')
+        .update({ points: newPoints })
+        .eq('id', user.id)
+
+      if (fallbackError) {
+        console.error('Fallback points update failed:', fallbackError.message)
+      }
     }
 
     revalidatePath(`/courses/[slug]/learn`, 'page')
     revalidatePath(`/leaderboard`)
 
-    return { success: true, newPoints }
+    return { success: true }
   } catch (error: any) {
     console.error('markVideoCompleted error:', error.message)
     return { success: false, error: error.message }

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useTransition } from 'react'
+import React, { useState, useTransition, useEffect } from 'react'
 import { Course, CourseVideo, StudentProgress } from '@/types'
 import { markVideoCompleted } from '@/lib/actions/learning'
 import { CheckCircle2, PlayCircle, Loader2, Trophy, ArrowLeft, Lock } from 'lucide-react'
@@ -24,6 +24,80 @@ export default function LearningClient({ course, videos, progress: initialProgre
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   const activeVideo = videos[activeVideoIndex]
+  const [canMarkCompleted, setCanMarkCompleted] = useState(false)
+
+  // Reset completion check when video changes
+  useEffect(() => {
+    setCanMarkCompleted(false)
+  }, [activeVideoIndex])
+
+  useEffect(() => {
+    if (!activeVideo) return
+
+    // If already watched, no need to monitor
+    const isCompleted = progress.some(p => p.video_id === activeVideo.id)
+    if (isCompleted) {
+      setCanMarkCompleted(true)
+      return
+    }
+
+    let player: any
+    let intervalId: any
+
+    const initializePlayer = () => {
+      try {
+        player = new (window as any).YT.Player('youtube-player', {
+          events: {
+            onStateChange: (event: any) => {
+              // 1 is PLAYING
+              if (event.data === 1) {
+                intervalId = setInterval(() => {
+                  try {
+                    const duration = player.getDuration()
+                    const currentTime = player.getCurrentTime()
+                    if (duration > 0 && (currentTime / duration) >= 0.8) {
+                      setCanMarkCompleted(true)
+                      clearInterval(intervalId)
+                    }
+                  } catch (e) {
+                    // Fail-safe in case of API issues
+                  }
+                }, 1000)
+              } else {
+                if (intervalId) clearInterval(intervalId)
+              }
+            }
+          }
+        })
+      } catch (e) {
+        // Fail-safe: allow marking as completed if YT player fails to initialize
+        setCanMarkCompleted(true)
+      }
+    }
+
+    // Load YT Script if not loaded
+    if (!(window as any).YT) {
+      const tag = document.createElement('script')
+      tag.src = 'https://www.youtube.com/iframe_api'
+      const firstScriptTag = document.getElementsByTagName('script')[0]
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag)
+
+      ;(window as any).onYouTubeIframeAPIReady = () => {
+        initializePlayer()
+      }
+    } else {
+      // Small timeout to ensure iframe is rendered before initializing
+      const timeoutId = setTimeout(initializePlayer, 1000)
+      return () => {
+        clearTimeout(timeoutId)
+        if (intervalId) clearInterval(intervalId)
+      }
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [activeVideoIndex, activeVideo, progress])
 
   // A video is locked if it's not the first video and the previous video hasn't been completed
   const isVideoLocked = (index: number) => {
@@ -112,7 +186,8 @@ export default function LearningClient({ course, videos, progress: initialProgre
             {activeVideo ? (
               <iframe
                 key={activeVideo.id} // Forces iframe reload when video changes
-                src={`https://www.youtube.com/embed/${activeVideo.youtube_id}?modestbranding=1&rel=0&showinfo=0`}
+                id="youtube-player"
+                src={`https://www.youtube.com/embed/${activeVideo.youtube_id}?enablejsapi=1&modestbranding=1&rel=0&showinfo=0`}
                 title={activeVideo.title}
                 className="absolute inset-0 w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -144,32 +219,38 @@ export default function LearningClient({ course, videos, progress: initialProgre
                 <hr className="border-gray-100" />
 
                 <div className="flex items-center justify-between">
-                  <p className="text-gray-500 text-sm font-medium">
-                    Markaad daawato muuqaalka, fadlan taabo badhanka si aad u hesho dhibcaha.
-                  </p>
-                  <button
-                    onClick={handleMarkCompleted}
-                    disabled={isPending || progress.some(p => p.video_id === activeVideo.id)}
-                    className={`px-6 py-3 rounded-xl font-bold text-sm shadow-lg transition-all flex items-center gap-2 ${
-                      progress.some(p => p.video_id === activeVideo.id)
-                        ? 'bg-emerald-500 text-white shadow-emerald-500/20 cursor-default'
-                        : 'bg-brand-primary hover:bg-brand-primary-dark text-white shadow-brand-primary/20 hover:-translate-y-0.5'
-                    }`}
-                  >
-                    {isPending ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : progress.some(p => p.video_id === activeVideo.id) ? (
-                      <>
-                        <CheckCircle2 className="h-5 w-5" />
-                        Waa La Daawaday
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="h-5 w-5" />
-                        Calaamadee in la daawaday
-                      </>
-                    )}
-                  </button>
+                  <div className="flex flex-col items-end gap-1.5">
+                    <p className="text-gray-400 text-xs font-semibold">
+                      {!canMarkCompleted && !progress.some(p => p.video_id === activeVideo.id) && (
+                        <span>Fadlan daawo 80% muuqaalka si aad u calaamadayso.</span>
+                      )}
+                    </p>
+                    <button
+                      onClick={handleMarkCompleted}
+                      disabled={isPending || progress.some(p => p.video_id === activeVideo.id) || !canMarkCompleted}
+                      className={`px-6 py-3 rounded-xl font-bold text-sm shadow-lg transition-all flex items-center gap-2 ${
+                        progress.some(p => p.video_id === activeVideo.id)
+                          ? 'bg-emerald-500 text-white shadow-emerald-500/20 cursor-default'
+                          : !canMarkCompleted
+                            ? 'bg-gray-300 text-gray-500 shadow-none cursor-not-allowed'
+                            : 'bg-brand-primary hover:bg-brand-primary-dark text-white shadow-brand-primary/20 hover:-translate-y-0.5'
+                      }`}
+                    >
+                      {isPending ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : progress.some(p => p.video_id === activeVideo.id) ? (
+                        <>
+                          <CheckCircle2 className="h-5 w-5" />
+                          Waa La Daawaday
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="h-5 w-5" />
+                          Calaamadee in la daawaday
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 {message && (
