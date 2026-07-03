@@ -66,7 +66,7 @@ export default function Footer() {
   }
 
   return (
-    <footer className="bg-brand-dark text-white pt-16 pb-8 border-t border-white/5 font-sans">
+    <footer className="bg-brand-primary text-white pt-16 pb-8 border-t border-white/5 font-sans">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Column 1: Brand Info */}
@@ -99,9 +99,9 @@ export default function Footer() {
               Xiriirada Degdega ah
             </h3>
             <ul className="space-y-4">
-              {['About Us', 'All Courses', 'Instructors', 'Pricing Plans', 'Contact support'].map((link) => (
+              {['About Us', 'All Courses', 'Contact support'].map((link) => (
                 <li key={link}>
-                  <Link href={link === 'All Courses' ? '/courses' : link === 'Contact support' ? '/contact' : '#'} className="text-gray-400 hover:text-brand-accent transition-colors text-sm font-medium">
+                  <Link href={link === 'All Courses' ? '/courses' : link === 'Contact support' ? '/contact' : '/about'} className="text-white/70 hover:text-white transition-colors text-sm font-medium">
                     {link}
                   </Link>
                 </li>
@@ -123,7 +123,7 @@ export default function Footer() {
                 { name: 'Business Strategy', slug: 'business' },
               ].map((cat) => (
                 <li key={cat.slug}>
-                  <Link href={`/courses?category=${cat.slug}`} className="text-gray-400 hover:text-brand-accent transition-colors text-sm font-medium">
+                  <Link href={`/courses?category=${cat.slug}`} className="text-white/70 hover:text-white transition-colors text-sm font-medium">
                     {cat.name}
                   </Link>
                 </li>
@@ -136,7 +136,7 @@ export default function Footer() {
             <h3 className="text-sm font-semibold uppercase tracking-wider text-brand-accent mb-6 font-display">
               Wargeyskayaga
             </h3>
-            <p className="text-gray-400 text-sm leading-relaxed">
+            <p className="text-white/70 text-sm leading-relaxed">
               Ku biir wargeyskayaga si aad u hesho ogeysiisyada koorsooyinka cusub iyo qiimo dhimista.
             </p>
             {subscribed ? (
@@ -163,11 +163,11 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500 font-medium">
+        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/70 font-medium">
           <p>© {new Date().getFullYear()} SomSkool. Xuquuqda oo dhan waa dhowran tahay.</p>
           <div className="flex items-center gap-6">
-            <a href="#" className="hover:text-gray-400 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-gray-400 transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
           </div>
         </div>
       </div>

@@ -35,8 +35,8 @@ export default function Navbar({ user }: NavbarProps) {
   const navLinks = [
     { name: t('home'), href: '/' },
     { name: t('courses'), href: '/courses' },
-    { name: t('leaderboard'), href: '/leaderboard' },
     { name: t('contact'), href: '/contact' },
+    { name: 'About', href: '/about' },
   ]
 
   const handleLogout = async () => {
@@ -136,8 +136,7 @@ export default function Navbar({ user }: NavbarProps) {
                   <Link 
                     href="/login" 
                     className={buttonVariants({ 
-                      variant: "ghost", 
-                      className: "font-semibold text-slate-700 hover:text-brand-primary transition-colors" 
+                      className: "rounded-full bg-slate-900 hover:bg-slate-800 font-extrabold text-white px-6 shadow-md transition-all hover:scale-105" 
                     })}
                   >
                     {t('login')}
@@ -309,8 +308,7 @@ export default function Navbar({ user }: NavbarProps) {
                 href="/login"
                 onClick={() => setIsOpen(false)}
                 className={buttonVariants({
-                  variant: "outline",
-                  className: "w-full rounded-xl border-slate-200 text-slate-700 font-bold"
+                  className: "w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold shadow-sm"
                 })}
               >
                 {t('login')}

@@ -143,23 +143,7 @@ export default function HomePageClient({ courses, videoSettings }: HomePageClien
         <div className="absolute top-0 right-0 w-[50%] h-[100%] bg-gradient-to-l from-white/[0.03] to-transparent pointer-events-none transform skew-x-[-12deg]" />
       </section>
 
-      {/* 📊 STATS BAR */}
-      <section className="w-full bg-white py-16 border-b border-border">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
-            {stats.map((stat, idx) => (
-              <div key={idx} className="space-y-1">
-                <p className="text-4xl sm:text-5xl font-extrabold text-brand-primary font-display">
-                  {stat.value}
-                </p>
-                <p className="text-sm font-bold text-gray-500 tracking-wide uppercase">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* 📚 RECENT COURSES SECTION */}
       <section className="w-full py-24 bg-background">

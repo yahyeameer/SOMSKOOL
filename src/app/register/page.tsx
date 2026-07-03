@@ -121,19 +121,8 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Role field */}
-            <div className="space-y-1">
-              <Label htmlFor="role" className="text-xs font-bold text-gray-500 uppercase">{t('role_label')}</Label>
-              <select
-                id="role"
-                name="role"
-                required
-                className="flex h-10 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-brand-dark font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
-              >
-                <option value="student">{t('student_role')}</option>
-                <option value="teacher">{t('teacher_role')}</option>
-              </select>
-            </div>
+            {/* Hidden Role field */}
+            <input type="hidden" name="role" value="student" />
 
             {/* Password field */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -8,7 +8,6 @@ import { Heart, Star, Clock, ArrowRight, Users } from 'lucide-react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 interface CourseCardProps {
   course: Course
@@ -44,13 +43,6 @@ export default function CourseCard({ course }: CourseCardProps) {
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
         />
         
-        {/* Difficulty Badge */}
-        <div className="absolute top-4 left-4 z-10">
-          <Badge className={`font-semibold rounded-full px-3 py-1 text-xs shadow-sm ${getDifficultyStyles(course.level)}`}>
-            {t(course.level.toLowerCase())}
-          </Badge>
-        </div>
-
         {/* Wishlist Heart */}
         <button
           onClick={(e) => {
@@ -58,14 +50,14 @@ export default function CourseCard({ course }: CourseCardProps) {
             e.stopPropagation()
             setWishlist(!wishlist)
           }}
-          className="absolute top-4 right-4 z-10 h-9 w-9 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center text-gray-500 hover:text-red-500 shadow-sm border border-gray-100 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 z-10 h-8 w-8 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center text-gray-500 hover:text-red-500 shadow-sm border border-gray-100 transition-colors cursor-pointer"
         >
-          <Heart className={`h-5 w-5 transition-transform duration-200 active:scale-95 ${wishlist ? 'fill-red-500 text-red-500' : ''}`} />
+          <Heart className={`h-4 w-4 transition-transform duration-200 active:scale-95 ${wishlist ? 'fill-red-500 text-red-500' : ''}`} />
         </button>
       </div>
 
       {/* Card Body */}
-      <CardContent className="p-6 flex flex-col flex-1">
+      <CardContent className="p-4 flex flex-col flex-1">
         {/* Rating and Duration */}
         <div className="flex items-center justify-between text-xs text-text-muted mb-3 font-semibold font-sans">
           <div className="flex items-center gap-1">
@@ -94,41 +86,20 @@ export default function CourseCard({ course }: CourseCardProps) {
           {course.description}
         </p>
 
-        {/* Spacer to push pricing & instructor to bottom */}
-        <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-          {/* Instructor profile */}
-          <div className="flex items-center gap-2.5">
-            <Avatar className="h-8 w-8 border border-gray-100">
-              <AvatarImage src={course.instructor_avatar} />
-              <AvatarFallback className="bg-brand-primary/5 text-brand-primary font-bold text-xs">
-                YM
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-brand-dark">
-                {course.instructor_name}
-              </span>
-              <span className="text-[10px] text-gray-400 font-medium">{t('instructor')}</span>
-            </div>
-          </div>
-
-          {/* Pricing & CTA */}
-          <div className="flex flex-col items-end">
-            <span className="text-base font-extrabold text-brand-primary font-display leading-tight">
-              {course.is_free ? t('free') : `$${course.price.toFixed(2)}`}
-            </span>
-            <Link
-              href={
-                course.is_free
-                  ? `/courses/${course.slug}/learn`
-                  : `/payment?courseId=${course.id}&title=${encodeURIComponent(course.title)}&price=${course.price}`
-              }
-              className="flex items-center gap-1 text-[11px] font-bold text-brand-primary hover:text-brand-primary-dark transition-all mt-1 group/btn"
-            >
-              <span>Enroll Now</span>
-              <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover/btn:translate-x-0.5" />
-            </Link>
-          </div>
+        {/* Spacer to push CTA to bottom */}
+        <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-end">
+          {/* CTA */}
+          <Link
+            href={
+              course.is_free
+                ? `/courses/${course.slug}/learn`
+                : `/payment?courseId=${course.id}&title=${encodeURIComponent(course.title)}&price=${course.price}`
+            }
+            className="flex items-center gap-1 text-[11px] font-bold text-brand-primary hover:text-brand-primary-dark transition-all mt-1 group/btn"
+          >
+            <span>{t('enroll_now')}</span>
+            <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover/btn:translate-x-0.5" />
+          </Link>
         </div>
       </CardContent>
     </Card>

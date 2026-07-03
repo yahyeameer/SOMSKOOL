@@ -93,48 +93,40 @@ export default function FilterSidebar() {
         </div>
       </div>
 
-      {/* Category Buttons */}
+      {/* Category Dropdown */}
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-brand-dark uppercase tracking-wider font-display border-b border-gray-100 pb-2">
           {t('categories')}
         </h3>
-        <div className="flex flex-wrap lg:flex-col gap-2">
+        <select
+          value={category}
+          onChange={(e) => handleCategoryChange(e.target.value)}
+          className="w-full bg-gray-50 border border-gray-200 text-brand-dark text-sm rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-colors cursor-pointer appearance-none"
+        >
           {categories.map((cat) => (
-            <button
-              key={cat.slug}
-              onClick={() => handleCategoryChange(cat.slug)}
-              className={`px-4 py-2.5 rounded-full text-xs font-bold text-left transition-all duration-300 w-fit lg:w-full border ${
-                category === cat.slug
-                  ? 'bg-gradient-to-r from-brand-primary to-[#4834D4] text-white shadow-lg shadow-brand-primary/25 border-transparent scale-[1.02]'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary'
-              }`}
-            >
+            <option key={cat.slug} value={cat.slug}>
               {cat.name}
-            </button>
+            </option>
           ))}
-        </div>
+        </select>
       </div>
 
-      {/* Difficulty Level Panel */}
+      {/* Difficulty Level Dropdown */}
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-brand-dark uppercase tracking-wider font-display border-b border-gray-100 pb-2">
           {t('course_level')}
         </h3>
-        <div className="flex flex-wrap lg:flex-col gap-2">
+        <select
+          value={level}
+          onChange={(e) => handleLevelChange(e.target.value)}
+          className="w-full bg-gray-50 border border-gray-200 text-brand-dark text-sm rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-colors cursor-pointer appearance-none"
+        >
           {levels.map((lvl) => (
-            <button
-              key={lvl.slug}
-              onClick={() => handleLevelChange(lvl.slug)}
-              className={`px-4 py-2.5 rounded-full text-xs font-bold text-left transition-all duration-300 w-fit lg:w-full border ${
-                level === lvl.slug
-                  ? 'bg-gradient-to-r from-brand-primary to-[#4834D4] text-white shadow-lg shadow-brand-primary/25 border-transparent scale-[1.02]'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary'
-              }`}
-            >
+            <option key={lvl.slug} value={lvl.slug}>
               {lvl.name}
-            </button>
+            </option>
           ))}
-        </div>
+        </select>
       </div>
 
       {/* Price Panel */}
