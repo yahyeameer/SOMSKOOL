@@ -135,6 +135,95 @@ export async function saveVideoSettings(settings: {
 }
 
 /**
+ * Fetch page settings from database
+ */
+export async function getPageSettings() {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('page_settings')
+      .select('*')
+      .eq('id', 1)
+      .single()
+
+    if (error || !data) {
+      return {
+        about_title: 'About SomSkool',
+        about_subtitle: 'Empowering the future through education',
+        about_text: 'The SomSkool is a diploma school in Addis Ababa with courses in computer science and english with highly educated teachers.',
+        about_header_image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80',
+        contact_title: 'La xiriir SomSkool',
+        contact_subtitle: 'Fadlan nala soo xiriir haddii aad hayso wax su\'aalo ah',
+        contact_text: 'SomSkool waxay diyaar u tahay inay ku caawiso. Nala soo xiriir maanta.',
+        contact_phone: '+252 63 XXX XXXX',
+        contact_header_image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80'
+      }
+    }
+
+    return data
+  } catch {
+    return {
+      about_title: 'About SomSkool',
+      about_subtitle: 'Empowering the future through education',
+      about_text: 'The SomSkool is a diploma school in Addis Ababa with courses in computer science and english with highly educated teachers.',
+      about_header_image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80',
+      contact_title: 'La xiriir SomSkool',
+      contact_subtitle: 'Fadlan nala soo xiriir haddii aad hayso wax su\'aalo ah',
+      contact_text: 'SomSkool waxay diyaar u tahay inay ku caawiso. Nala soo xiriir maanta.',
+      contact_phone: '+252 63 XXX XXXX',
+      contact_header_image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80'
+    }
+  }
+}
+
+/**
+ * Save page settings to database
+ */
+export async function savePageSettings(settings: {
+  about_title: string;
+  about_subtitle: string;
+  about_text: string;
+  about_header_image: string;
+  contact_title: string;
+  contact_subtitle: string;
+  contact_text: string;
+  contact_phone: string;
+  contact_header_image: string;
+}) {
+  const user = await getSessionUser()
+  if (!user || user.role !== 'admin') {
+    return { error: 'Fadlan hubi inaad tahay maamule (admin) si aad u sameyso ficilkan.' }
+  }
+
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase
+      .from('page_settings')
+      .update({
+        about_title: settings.about_title,
+        about_subtitle: settings.about_subtitle,
+        about_text: settings.about_text,
+        about_header_image: settings.about_header_image,
+        contact_title: settings.contact_title,
+        contact_subtitle: settings.contact_subtitle,
+        contact_text: settings.contact_text,
+        contact_phone: settings.contact_phone,
+        contact_header_image: settings.contact_header_image
+      })
+      .eq('id', 1)
+
+    if (error) return { error: error.message }
+
+    revalidatePath('/admin')
+    revalidatePath('/about')
+    revalidatePath('/contact')
+    return { success: true }
+  } catch (err: any) {
+    return { error: err.message }
+  }
+}
+
+/**
  * Fetch all staff members (teachers and admins)
  */
 export async function getStaffMembers() {

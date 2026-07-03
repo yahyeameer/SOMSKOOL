@@ -1,13 +1,13 @@
 import React from 'react'
 import { getPageSettings } from '@/lib/actions/admin'
-import ContactClient from '@/components/ContactClient'
+import AboutClient from '@/components/AboutClient'
 
 export const revalidate = 60 // Revalidate every 60 seconds
 
-export default async function ContactPage() {
+export default async function AboutPage() {
   const settings = await getPageSettings()
   
   return (
-    <ContactClient settings={settings} />
+    <AboutClient settings={settings} />
   )
 }

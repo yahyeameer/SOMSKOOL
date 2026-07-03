@@ -20,7 +20,8 @@ import {
   Users,
   UserPlus,
   PlayCircle,
-  Trash2
+  Trash2,
+  LayoutTemplate
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -36,11 +37,12 @@ interface AdminPanelProps {
   initialStaff?: any[]
   courseVideos?: CourseVideo[]
   students?: any[]
+  pageSettings?: any
 }
 
-export default function AdminPanel({ payments: initialPayments, documents: initialDocs, courses: initialCourses, videoSettings, initialStaff = [], courseVideos: initialVideos = [], students: initialStudents = [] }: AdminPanelProps) {
+export default function AdminPanel({ payments: initialPayments, documents: initialDocs, courses: initialCourses, videoSettings, pageSettings, initialStaff = [], courseVideos: initialVideos = [], students: initialStudents = [] }: AdminPanelProps) {
   const { t } = useLanguage()
-  const [activeTab, setActiveTab] = useState<'payments' | 'docs' | 'video' | 'staff' | 'modules' | 'students' | 'courses'>('payments')
+  const [activeTab, setActiveTab] = useState<'payments' | 'docs' | 'video' | 'staff' | 'modules' | 'students' | 'courses' | 'pages'>('payments')
   const [payments, setPayments] = useState<Payment[]>(initialPayments)
   const [documents, setDocuments] = useState<any[]>(initialDocs)
   const [courses, setCourses] = useState<Course[]>(initialCourses)
@@ -86,6 +88,19 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
   const [courseSlug, setCourseSlug] = useState('')
   const [coursePrice, setCoursePrice] = useState(0)
   const [courseMessage, setCourseMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+
+  // Tab 8: Pages Management
+  const [aboutTitle, setAboutTitle] = useState(pageSettings?.about_title || '')
+  const [aboutSubtitle, setAboutSubtitle] = useState(pageSettings?.about_subtitle || '')
+  const [aboutText, setAboutText] = useState(pageSettings?.about_text || '')
+  const [aboutImage, setAboutImage] = useState(pageSettings?.about_header_image || '')
+  
+  const [contactTitle, setContactTitle] = useState(pageSettings?.contact_title || '')
+  const [contactSubtitle, setContactSubtitle] = useState(pageSettings?.contact_subtitle || '')
+  const [contactText, setContactText] = useState(pageSettings?.contact_text || '')
+  const [contactPhone, setContactPhone] = useState(pageSettings?.contact_phone || '')
+  const [contactImage, setContactImage] = useState(pageSettings?.contact_header_image || '')
+  const [pageMessage, setPageMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   const [isPending, startTransition] = useTransition()
 
@@ -333,6 +348,32 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
     })
   }
 
+  // Tab 8 Action: Save Pages
+  const handlePageSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPageMessage(null)
+    startTransition(async () => {
+      const { savePageSettings } = await import('@/lib/actions/admin')
+      const res = await savePageSettings({
+        about_title: aboutTitle,
+        about_subtitle: aboutSubtitle,
+        about_text: aboutText,
+        about_header_image: aboutImage,
+        contact_title: contactTitle,
+        contact_subtitle: contactSubtitle,
+        contact_text: contactText,
+        contact_phone: contactPhone,
+        contact_header_image: contactImage
+      })
+
+      if (res.success) {
+        setPageMessage({ type: 'success', text: 'Xogta boggaga si guul ah ayaa loo keydiyey!' })
+      } else {
+        setPageMessage({ type: 'error', text: res.error || 'Khalad ayaa dhacay' })
+      }
+    })
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 font-sans">
       
@@ -425,6 +466,18 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         >
           <FileCheck className="h-5 w-5" />
           <span>Courses</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('pages')}
+          className={`flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-semibold transition-all text-left ${
+            activeTab === 'pages'
+              ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/15'
+              : 'bg-white hover:bg-gray-50 border border-border text-brand-dark'
+          }`}
+        >
+          <LayoutTemplate className="h-5 w-5" />
+          <span>About & Contact</span>
         </button>
       </div>
 
@@ -1243,6 +1296,102 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                     </table>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* ================= TAB 8: PAGES ================= */}
+        {activeTab === 'pages' && (
+          <div className="space-y-6 text-left">
+            <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden text-left">
+              <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Maamul Boggaga About & Contact</CardTitle>
+                <CardDescription className="text-gray-400 font-medium">Habeey qoraalada, sawirada, iyo numberka boggaga (About Us iyo Contact Us).</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <form onSubmit={handlePageSubmit} className="space-y-8">
+                  {pageMessage && (
+                    <div className={`p-4 rounded-xl flex items-start gap-2.5 text-sm font-semibold ${
+                      pageMessage.type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-500 border border-red-100'
+                    }`}>
+                      {pageMessage.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                      <span>{pageMessage.text}</span>
+                    </div>
+                  )}
+
+                  {/* About Section */}
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-lg border-b pb-2">About Page</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-gray-500">About Title</Label>
+                        <Input value={aboutTitle} onChange={(e) => setAboutTitle(e.target.value)} placeholder="e.g. About SomSkool" className="rounded-xl border-gray-200" required />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-gray-500">About Subtitle</Label>
+                        <Input value={aboutSubtitle} onChange={(e) => setAboutSubtitle(e.target.value)} placeholder="e.g. Empowering the future" className="rounded-xl border-gray-200" required />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold text-gray-500">About Header Image URL</Label>
+                      <Input value={aboutImage} onChange={(e) => setAboutImage(e.target.value)} placeholder="e.g. https://images.unsplash.com/..." className="rounded-xl border-gray-200" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold text-gray-500">About Main Text</Label>
+                      <textarea
+                        value={aboutText}
+                        onChange={(e) => setAboutText(e.target.value)}
+                        placeholder="The SomSkool is a diploma skool in adisababa..."
+                        className="w-full h-24 p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Contact Section */}
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-lg border-b pb-2">Contact Page</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-gray-500">Contact Title</Label>
+                        <Input value={contactTitle} onChange={(e) => setContactTitle(e.target.value)} placeholder="e.g. La xiriir SomSkool" className="rounded-xl border-gray-200" required />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-gray-500">Contact Subtitle</Label>
+                        <Input value={contactSubtitle} onChange={(e) => setContactSubtitle(e.target.value)} placeholder="e.g. Nala soo xiriir haddii aad hayso su'aalo" className="rounded-xl border-gray-200" required />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-gray-500">Contact Phone / WhatsApp</Label>
+                        <Input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="e.g. +252 63 XXX XXXX" className="rounded-xl border-gray-200" required />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-gray-500">Contact Header Image URL</Label>
+                        <Input value={contactImage} onChange={(e) => setContactImage(e.target.value)} placeholder="e.g. https://images.unsplash.com/..." className="rounded-xl border-gray-200" />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold text-gray-500">Contact Main Text</Label>
+                      <textarea
+                        value={contactText}
+                        onChange={(e) => setContactText(e.target.value)}
+                        placeholder="SomSkool waxay diyaar u tahay inay ku caawiso..."
+                        className="w-full h-24 p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer"
+                  >
+                    <LayoutTemplate className="h-5 w-5" />
+                    Keydi Boggaga
+                  </Button>
+                </form>
               </CardContent>
             </Card>
           </div>
