@@ -79,6 +79,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
   const [moduleYoutubeId, setModuleYoutubeId] = useState('')
   const [modulePoints, setModulePoints] = useState(10)
   const [moduleMessage, setModuleMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [previewVideoId, setPreviewVideoId] = useState<string | null>(null)
 
   // Tab 6: Students
   const [students, setStudents] = useState<any[]>(initialStudents)
@@ -252,7 +253,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           id: 'temp-' + Math.random(),
           course_id: moduleCourse,
           title: moduleTitle,
-          youtube_id: moduleYoutubeId,
+          youtube_id: res.finalYoutubeId || moduleYoutubeId,
           points_awarded: modulePoints,
           order_index: videoList.filter(v => v.course_id === moduleCourse).length + 1,
           created_at: new Date().toISOString()
@@ -1108,12 +1109,22 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                                 +{v.points_awarded}
                               </td>
                               <td className="py-4 px-3 text-right">
-                                <button
-                                  onClick={() => handleModuleDelete(v.id)}
-                                  className="text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors inline-flex"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    onClick={() => setPreviewVideoId(v.youtube_id)}
+                                    className="text-brand-primary hover:text-brand-primary-dark bg-brand-primary/10 hover:bg-brand-primary/20 p-2 rounded-lg transition-colors inline-flex"
+                                    title="Daawo Muuqaalka"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleModuleDelete(v.id)}
+                                    className="text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors inline-flex"
+                                    title="Tirtir Casharka"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           )
@@ -1423,6 +1434,34 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         )}
 
       </div>
+      
+      {/* Video Preview Modal */}
+      {previewVideoId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+          <div 
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+            onClick={() => setPreviewVideoId(null)}
+          />
+          <div className="relative w-full max-w-4xl bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10 animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setPreviewVideoId(null)}
+              className="absolute -top-12 right-0 text-white/70 hover:text-white transition-colors flex items-center gap-2"
+            >
+              <span className="text-sm font-bold uppercase tracking-widest">Xir</span>
+              <XCircle className="h-8 w-8" />
+            </button>
+            <div className="aspect-video w-full bg-black relative">
+              <iframe
+                src={`https://www.youtube.com/embed/${previewVideoId}?autoplay=1`}
+                title="Video Preview"
+                className="absolute inset-0 w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

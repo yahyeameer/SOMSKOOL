@@ -1,0 +1,2 @@
+i go to googlr and copy image of excell and these was error when trying (Could not find the 'video_thumbnail_url' column of 'video_settings' in the schema cache
+)to upload also it dosnt show the image 

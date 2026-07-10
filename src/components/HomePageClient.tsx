@@ -4,10 +4,11 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import CourseCard from '@/components/CourseCard'
+import VideoModal from '@/components/VideoModal'
 import { Course } from '@/types'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Star, CheckCircle, ArrowRight } from 'lucide-react'
+import { Star, CheckCircle, ArrowRight, Play } from 'lucide-react'
 import { useLanguage } from '@/contexts/LanguageContext'
 
 interface HomePageClientProps {
@@ -143,6 +144,91 @@ export default function HomePageClient({ courses, videoSettings }: HomePageClien
         <div className="absolute top-0 right-0 w-[50%] h-[100%] bg-gradient-to-l from-white/[0.03] to-transparent pointer-events-none transform skew-x-[-12deg]" />
       </section>
 
+      {/* 🎬 YOUTUBE VIDEO SHOWCASE */}
+      {videoSettings?.youtube_id && (
+        <section className="w-full py-24 bg-gradient-to-b from-brand-dark via-[#12122a] to-background relative overflow-hidden">
+          {/* Decorative background elements */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(91,79,233,0.15),transparent_60%)]" />
+          <div className="absolute top-20 left-10 w-72 h-72 bg-brand-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-brand-accent/5 rounded-full blur-3xl" />
+
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+            {/* Section Header */}
+            <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
+              <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-5 py-2 text-sm font-bold text-white/80">
+                <Play className="h-4 w-4 text-red-500" />
+                <span>{videoSettings.channel_name || 'SomSkool Academy'}</span>
+              </div>
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
+                {videoSettings.video_title || t('watch_intro_video') || 'Daawo Muuqaalka Barashada'}
+              </h2>
+              <p className="text-white/50 text-base font-medium leading-relaxed">
+                {t('video_section_subtitle') || 'Muuqaalka hoose kuu sharaxaya sida aad uga faa\'iidaysan karto SomSkool Academy.'}
+              </p>
+            </div>
+
+            {/* Video Player Card */}
+            <div className="max-w-4xl mx-auto">
+              <div className="relative group">
+                {/* Glow effect behind the card */}
+                <div className="absolute -inset-1 bg-gradient-to-r from-brand-primary/20 via-brand-accent/20 to-brand-primary/20 rounded-3xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
+
+                {/* Main video card */}
+                <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/40 backdrop-blur-sm">
+                  {/* Thumbnail */}
+                  <div className="relative aspect-video w-full bg-black/60 overflow-hidden">
+                    <Image
+                      src={
+                        videoSettings.video_thumbnail_url ||
+                        `https://img.youtube.com/vi/${videoSettings.youtube_id}/maxresdefault.jpg`
+                      }
+                      alt={videoSettings.video_title || 'SomSkool Video'}
+                      fill
+                      className="object-cover opacity-70 group-hover:opacity-90 transition-opacity duration-500 group-hover:scale-105 transition-transform"
+                      sizes="(max-width: 768px) 100vw, 900px"
+                    />
+
+                    {/* Gradient overlays */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/10 to-transparent" />
+
+                    {/* Play Button (VideoModal) - Centered */}
+                    <div className="absolute inset-0 flex items-center justify-center z-10">
+                      <VideoModal
+                        youtubeId={videoSettings.youtube_id}
+                        channelName={videoSettings.channel_name || 'SomSkool Academy'}
+                      />
+                    </div>
+
+                    {/* Bottom info bar */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 z-10 flex items-end justify-between">
+                      <div className="space-y-1">
+                        <p className="text-white font-bold text-lg drop-shadow-lg">
+                          {videoSettings.video_title || 'Welcome to SomSkool Academy'}
+                        </p>
+                        <p className="text-white/60 text-sm font-medium">
+                          {videoSettings.channel_name || 'SomSkool Academy'}
+                        </p>
+                      </div>
+                      {videoSettings.channel_url && (
+                        <a
+                          href={videoSettings.channel_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-full transition-colors shadow-lg"
+                        >
+                          <Play className="h-4 w-4" />
+                          Subscribe
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
 
       {/* 📚 RECENT COURSES SECTION */}

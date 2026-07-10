@@ -35,6 +35,7 @@ export default function Navbar({ user }: NavbarProps) {
   const navLinks = [
     { name: t('home'), href: '/' },
     { name: t('courses'), href: '/courses' },
+    ...(user && user.role === 'student' ? [{ name: 'Dashboard', href: '/dashboard' }] : []),
     { name: t('contact'), href: '/contact' },
     { name: 'About', href: '/about' },
   ]
@@ -237,6 +238,21 @@ export default function Navbar({ user }: NavbarProps) {
               >
                 <Shield className="h-5 w-5" />
                 {t('admin')} Panel
+              </Link>
+            </div>
+          )}
+
+          {/* Student Dashboard Link */}
+          {user?.role === 'student' && (
+            <div className="space-y-3">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Waxbarashadaada</span>
+              <Link
+                href="/dashboard"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 p-3 rounded-xl bg-brand-primary/10 text-brand-primary font-bold hover:bg-brand-primary/20 transition-colors"
+              >
+                <Trophy className="h-5 w-5" />
+                My Dashboard
               </Link>
             </div>
           )}

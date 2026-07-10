@@ -393,17 +393,24 @@ export async function addCourseVideo(data: { course_id: string, title: string, y
   const user = await getSessionUser()
   if (!user || user.role !== 'admin') return { error: 'Unauthorized' }
 
+  // Extract YouTube ID in case a full URL was pasted
+  let finalYoutubeId = data.youtube_id;
+  const match = finalYoutubeId.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
+  if (match && match[1]) {
+    finalYoutubeId = match[1];
+  }
+
   try {
     const supabase = await createClient()
     const { error } = await supabase
       .from('course_videos')
-      .insert(data)
+      .insert({ ...data, youtube_id: finalYoutubeId })
 
     if (error) throw error
 
     revalidatePath('/admin')
     // Don't revalidate dynamic path with brackets, just return success
-    return { success: true }
+    return { success: true, finalYoutubeId }
   } catch (err: any) {
     console.error('addCourseVideo error:', err.message)
     return { success: false, error: err.message }

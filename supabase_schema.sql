@@ -6,7 +6,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. PROFILES TABLE (Linked to auth.users)
-CREATE TABLE public.profiles (
+CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   full_name TEXT NOT NULL,
   avatar_url TEXT,
@@ -42,7 +42,7 @@ CREATE TRIGGER on_auth_user_created
 
 
 -- 2. COURSES TABLE
-CREATE TABLE public.courses (
+CREATE TABLE IF NOT EXISTS public.courses (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   title TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
@@ -71,7 +71,7 @@ CREATE POLICY "Only admins can modify courses" ON public.courses FOR ALL USING (
 
 
 -- 3. PAYMENTS TABLE
-CREATE TABLE public.payments (
+CREATE TABLE IF NOT EXISTS public.payments (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   student_id UUID REFERENCES public.profiles(id) NOT NULL,
   course_id UUID REFERENCES public.courses(id) NOT NULL,
@@ -102,7 +102,7 @@ CREATE POLICY "Only admins can update payment status" ON public.payments FOR UPD
 
 
 -- 4. ENROLLMENTS TABLE
-CREATE TABLE public.enrollments (
+CREATE TABLE IF NOT EXISTS public.enrollments (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   student_id UUID REFERENCES public.profiles(id) NOT NULL,
   course_id UUID REFERENCES public.courses(id) NOT NULL,
@@ -124,7 +124,7 @@ CREATE POLICY "Admins can insert enrollments" ON public.enrollments FOR INSERT W
 
 
 -- 5. CONTACT MESSAGES TABLE
-CREATE TABLE public.contact_messages (
+CREATE TABLE IF NOT EXISTS public.contact_messages (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   full_name TEXT NOT NULL,
   email TEXT NOT NULL,
@@ -144,7 +144,7 @@ CREATE POLICY "Only admins can view contact messages" ON public.contact_messages
 
 
 -- 6. VIDEO SETTINGS (Single row table for homepage video)
-CREATE TABLE public.video_settings (
+CREATE TABLE IF NOT EXISTS public.video_settings (
   id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
   youtube_id TEXT NOT NULL,
   channel_name TEXT NOT NULL,
