@@ -261,7 +261,7 @@ export async function getStaffMembers() {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .in('role', ['teacher', 'admin'])
+      .neq('role', 'student')
       .order('created_at', { ascending: false })
 
     if (error) return { error: error.message, data: [] }
@@ -553,5 +553,112 @@ export async function toggleCoursePublish(id: string, isPublished: boolean) {
     return { success: true }
   } catch (err: any) {
     return { success: false, error: err.message }
+  }
+}
+
+/**
+ * Fetch dynamic roles
+ */
+export async function getRoles() {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('roles')
+      .select('*')
+      .order('created_at', { ascending: true })
+
+    if (error) return { data: [] }
+    return { data: data || [] }
+  } catch {
+    return { data: [] }
+  }
+}
+
+/**
+ * Create a new role
+ */
+export async function createRole(name: string) {
+  const user = await getSessionUser()
+  if (!user || user.role !== 'admin') {
+    return { error: 'Admin only' }
+  }
+
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase
+      .from('roles')
+      .insert({ name })
+
+    if (error) return { error: error.message }
+    
+    revalidatePath('/admin')
+    return { success: true }
+  } catch (err: any) {
+    return { error: err.message }
+  }
+}
+
+/**
+ * Delete a role
+ */
+export async function deleteRole(id: string) {
+  const user = await getSessionUser()
+  if (!user || user.role !== 'admin') {
+    return { error: 'Admin only' }
+  }
+
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase
+      .from('roles')
+      .delete()
+      .eq('id', id)
+
+    if (error) return { error: error.message }
+    
+    revalidatePath('/admin')
+    return { success: true }
+  } catch (err: any) {
+    return { error: err.message }
+  }
+}
+
+/**
+ * Regenerate a staff member's password
+ */
+export async function regenerateStaffPassword(userId: string) {
+  const user = await getSessionUser()
+  if (!user || user.role !== 'admin') {
+    return { error: 'Fadlan hubi inaad tahay maamule (admin) si aad u sameyso ficilkan.' }
+  }
+
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceRoleKey) {
+    return { error: 'SUPABASE_SERVICE_ROLE_KEY is missing from .env.local' }
+  }
+
+  try {
+    const { createClient: createAdminClient } = await import('@supabase/supabase-js')
+    const adminAuthClient = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+
+    // Generate a random 8-character password
+    const newPassword = Math.random().toString(36).slice(-8)
+
+    // Update user password via Admin API
+    const { error: updateError } = await adminAuthClient.auth.admin.updateUserById(
+      userId,
+      { password: newPassword }
+    )
+
+    if (updateError) return { error: updateError.message }
+
+    return { success: true, newPassword }
+  } catch (err: any) {
+    return { error: err.message }
   }
 }

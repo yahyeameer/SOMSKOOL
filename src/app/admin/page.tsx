@@ -1,7 +1,7 @@
 import React from 'react'
 import { getSessionUser } from '@/lib/actions/auth'
 import { getCourses } from '@/lib/actions/courses'
-import { getStaffMembers, getPayments, getDocuments, getVideoSettings, getAllCourseVideos, getPageSettings } from '@/lib/actions/admin'
+import { getStaffMembers, getPayments, getDocuments, getVideoSettings, getAllCourseVideos, getPageSettings, getRoles } from '@/lib/actions/admin'
 import { getAllStudents } from '@/lib/actions/users'
 import { redirect } from 'next/navigation'
 import AdminPanel from '@/components/AdminPanel'
@@ -22,6 +22,7 @@ export default async function AdminPage() {
   const videoSettings = await getVideoSettings()
   const courseVideos = await getAllCourseVideos()
   const pageSettings = await getPageSettings()
+  const { data: roles = [] } = await getRoles()
 
   return (
     <div className="flex flex-col w-full font-sans min-h-screen bg-background">
@@ -56,6 +57,7 @@ export default async function AdminPage() {
           pageSettings={pageSettings}
           initialStaff={staff || []}
           students={students || []}
+          roles={roles || []}
         />
       </section>
     </div>

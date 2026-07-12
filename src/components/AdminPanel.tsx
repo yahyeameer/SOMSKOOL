@@ -24,7 +24,9 @@ import {
   Trash2,
   LayoutTemplate,
   Eye,
-  EyeOff
+  EyeOff,
+  ShieldCheck,
+  Key
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -41,11 +43,12 @@ interface AdminPanelProps {
   courseVideos?: CourseVideo[]
   students?: any[]
   pageSettings?: any
+  roles?: any[]
 }
 
-export default function AdminPanel({ payments: initialPayments, documents: initialDocs, courses: initialCourses, videoSettings, pageSettings, initialStaff = [], courseVideos: initialVideos = [], students: initialStudents = [] }: AdminPanelProps) {
+export default function AdminPanel({ payments: initialPayments, documents: initialDocs, courses: initialCourses, videoSettings, pageSettings, initialStaff = [], courseVideos: initialVideos = [], students: initialStudents = [], roles: initialRoles = [] }: AdminPanelProps) {
   const { t } = useLanguage()
-  const [activeTab, setActiveTab] = useState<'payments' | 'docs' | 'video' | 'staff' | 'modules' | 'students' | 'courses' | 'pages'>('payments')
+  const [activeTab, setActiveTab] = useState<'payments' | 'docs' | 'video' | 'staff' | 'roles' | 'modules' | 'students' | 'courses' | 'pages'>('payments')
   const [payments, setPayments] = useState<Payment[]>(initialPayments)
   const [documents, setDocuments] = useState<any[]>(initialDocs)
   const [courses, setCourses] = useState<Course[]>(initialCourses)
@@ -67,11 +70,17 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
   // Tab 4: Staff states
   const [staffList, setStaffList] = useState<any[]>(initialStaff)
+  const [rolesList, setRolesList] = useState<any[]>(initialRoles)
   const [staffName, setStaffName] = useState('')
   const [staffEmail, setStaffEmail] = useState('')
   const [staffPassword, setStaffPassword] = useState('')
-  const [staffRole, setStaffRole] = useState('teacher')
+  const [staffRole, setStaffRole] = useState(initialRoles.length > 0 ? initialRoles[0].name : 'teacher')
   const [staffMessage, setStaffMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [regeneratedPassword, setRegeneratedPassword] = useState<string | null>(null)
+  
+  // Tab 9: Role Management states
+  const [roleName, setRoleName] = useState('')
+  const [roleMessage, setRoleMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   // Tab 5: Course Modules states
   const [videoList, setVideoList] = useState<CourseVideo[]>(initialVideos)
@@ -245,6 +254,61 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         setStaffPassword('')
       } else {
         setStaffMessage({ type: 'error', text: res.error || 'Khalad ayaa dhacay.' })
+      }
+    })
+  }
+
+  // Tab 4 Action: Regenerate Password
+  const handleRegeneratePassword = async (userId: string, userName: string) => {
+    if (!confirm(`Ma hubtaa inaad dib u sameyso password-ka cusub ee: ${userName}?`)) return
+    
+    startTransition(async () => {
+      const { regenerateStaffPassword } = await import('@/lib/actions/admin')
+      const res = await regenerateStaffPassword(userId)
+      
+      if (res.success && res.newPassword) {
+        setRegeneratedPassword(`Password-ka cusub ee ${userName} waa:\n\n${res.newPassword}\n\nFadlan koobiyee oo sii.`);
+      } else {
+        alert(res.error || 'Khalad ayaa dhacay.')
+      }
+    })
+  }
+
+  // Tab 9 Action: Manage Roles
+  const handleRoleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setRoleMessage(null)
+
+    if (!roleName.trim()) {
+      setRoleMessage({ type: 'error', text: 'Fadlan ku qor magaca doorka.' })
+      return
+    }
+
+    startTransition(async () => {
+      const { createRole } = await import('@/lib/actions/admin')
+      const res = await createRole(roleName.trim().toLowerCase())
+
+      if (res.success) {
+        setRoleMessage({ type: 'success', text: `Door cusub waa la diiwaangaliyey!` })
+        setRolesList(prev => [...prev, { id: 'temp-' + Math.random(), name: roleName.trim().toLowerCase(), created_at: new Date().toISOString() }])
+        setRoleName('')
+      } else {
+        setRoleMessage({ type: 'error', text: res.error || 'Khalad ayaa dhacay.' })
+      }
+    })
+  }
+
+  const handleRoleDelete = async (roleId: string, roleN: string) => {
+    if (!confirm(`Ma hubtaa inaad tirtirto doorka "${roleN}"?`)) return
+    
+    startTransition(async () => {
+      const { deleteRole } = await import('@/lib/actions/admin')
+      const res = await deleteRole(roleId)
+
+      if (res.success) {
+        setRolesList(prev => prev.filter(r => r.id !== roleId))
+      } else {
+        alert(res.error || 'Khalad ayaa dhacay.')
       }
     })
   }
@@ -486,6 +550,18 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         >
           <Users className="h-5 w-5" />
           <span>{t('staff')}</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('roles')}
+          className={`flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-semibold transition-all text-left ${
+            activeTab === 'roles'
+              ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/15'
+              : 'bg-white hover:bg-gray-50 border border-border text-brand-dark'
+          }`}
+        >
+          <ShieldCheck className="h-5 w-5" />
+          <span>Maamulka Doorarka</span>
         </button>
 
         <button
@@ -948,8 +1024,13 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                         onChange={(e) => setStaffRole(e.target.value)}
                         className="w-full h-10 px-3 border border-gray-200 text-brand-dark font-medium rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-primary/25 focus:border-brand-primary"
                       >
-                        <option value="teacher">Macalin (Teacher)</option>
-                        <option value="admin">Maamule (Admin)</option>
+                        {rolesList.length === 0 ? (
+                          <option value="teacher">Macalin (Teacher)</option>
+                        ) : (
+                          rolesList.map(r => (
+                            <option key={r.id} value={r.name}>{r.name.toUpperCase()}</option>
+                          ))
+                        )}
                       </select>
                     </div>
                   </div>
@@ -970,6 +1051,15 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                 <CardTitle className="font-display text-xl font-bold text-brand-dark">Liiska Shaqaalaha (Staff List)</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
+                {regeneratedPassword && (
+                  <div className="mb-6 bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex items-start gap-3 shadow-sm">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-600 mt-0.5 shrink-0" />
+                    <div>
+                      <h4 className="text-sm font-bold text-emerald-900">Password-ka waa la cusbooneysiiyey</h4>
+                      <pre className="mt-2 bg-white/60 p-3 rounded-lg text-sm text-emerald-800 font-mono font-bold whitespace-pre-wrap">{regeneratedPassword}</pre>
+                    </div>
+                  </div>
+                )}
                 {staffList.length === 0 ? (
                   <div className="py-12 text-center space-y-2">
                     <Users className="h-11 w-11 text-gray-300 mx-auto" />
@@ -984,6 +1074,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                           <th className="py-3.5 px-3">Email</th>
                           <th className="py-3.5 px-3">Nooca</th>
                           <th className="py-3.5 px-3 text-right">Taariikhda</th>
+                          <th className="py-3.5 px-3 text-right">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-50 font-medium">
@@ -1004,6 +1095,15 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                             </td>
                             <td className="py-4 px-3 text-right text-gray-400 text-xs">
                               {new Date(s.created_at).toLocaleDateString()}
+                            </td>
+                            <td className="py-4 px-3 text-right">
+                              <button
+                                onClick={() => handleRegeneratePassword(s.id, s.full_name)}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded-lg text-xs font-bold transition-colors"
+                              >
+                                <Key className="h-3.5 w-3.5" />
+                                Reset
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -1497,6 +1597,88 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           </div>
         )}
 
+        {/* ================= TAB 9: ROLES ================= */}
+        {activeTab === 'roles' && (
+          <div className="space-y-8 text-left">
+            <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
+              <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Abuur Door Cusub (Add Role)</CardTitle>
+                <CardDescription className="text-gray-400 font-medium">U samee doorar cusub shaqaalaha (tusaale: moderator, editor).</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <form onSubmit={handleRoleSubmit} className="space-y-5">
+                  {roleMessage && (
+                    <div className={`p-4 rounded-xl flex items-start gap-2.5 text-sm font-semibold ${
+                      roleMessage.type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-500 border border-red-100'
+                    }`}>
+                      {roleMessage.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                      <span>{roleMessage.text}</span>
+                    </div>
+                  )}
+
+                  <div className="space-y-1.5 max-w-sm">
+                    <Label htmlFor="roleName" className="text-xs font-bold text-gray-500 uppercase">Magaca Doorka</Label>
+                    <Input
+                      id="roleName"
+                      type="text"
+                      placeholder="e.g. moderator"
+                      value={roleName}
+                      onChange={(e) => setRoleName(e.target.value)}
+                      className="rounded-xl border-gray-200"
+                      required
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer"
+                  >
+                    <ShieldCheck className="h-5 w-5" />
+                    Samee Doorka
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
+              <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Liiska Doorarka (Roles List)</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {rolesList.length === 0 ? (
+                  <div className="py-12 text-center space-y-2">
+                    <ShieldCheck className="h-11 w-11 text-gray-300 mx-auto" />
+                    <p className="text-gray-400 text-sm font-semibold">Wali ma jiraan doorar.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {rolesList.map(r => (
+                      <div key={r.id} className="border border-gray-100 rounded-xl p-4 flex items-center justify-between hover:shadow-sm transition-all bg-gray-50/30">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 bg-brand-primary/10 text-brand-primary rounded-lg flex items-center justify-center">
+                            <ShieldCheck className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="font-extrabold text-brand-dark uppercase tracking-wide text-sm">{r.name}</p>
+                            <p className="text-[10px] text-gray-400 font-medium mt-0.5">{new Date(r.created_at).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                        {r.name !== 'admin' && (
+                          <button
+                            onClick={() => handleRoleDelete(r.id, r.name)}
+                            className="h-8 w-8 rounded-full bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
       
       {/* Video Preview Modal */}
