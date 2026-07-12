@@ -8,7 +8,7 @@ import { Course } from '@/types'
 /**
  * Server action to approve or reject student payment requests.
  */
-export async function modifyPaymentStatus(paymentId: string, status: 'confirmed' | 'failed') {
+export async function modifyPaymentStatus(paymentId: string, status: 'confirmed' | 'failed', reject_reason?: string) {
   const user = await getSessionUser()
   if (!user || user.role !== 'admin') {
     return { error: 'Fadlan hubi inaad tahay maamule (admin) si aad u sameyso ficilkan.' }
@@ -18,7 +18,7 @@ export async function modifyPaymentStatus(paymentId: string, status: 'confirmed'
     const supabase = await createClient()
     const { error } = await supabase
       .from('payments')
-      .update({ status })
+      .update({ status, reject_reason: status === 'failed' ? reject_reason || null : null })
       .eq('id', paymentId)
 
     if (error) return { error: error.message }
@@ -156,7 +156,13 @@ export async function getPageSettings() {
         contact_subtitle: 'Fadlan nala soo xiriir haddii aad hayso wax su\'aalo ah',
         contact_text: 'SomSkool waxay diyaar u tahay inay ku caawiso. Nala soo xiriir maanta.',
         contact_phone: '+252 63 XXX XXXX',
-        contact_header_image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80'
+        contact_header_image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80',
+        contact_email: 'support@somskool.com',
+        contact_address: 'Hargeisa, Somaliland',
+        social_facebook: 'https://facebook.com/somskool',
+        social_instagram: 'https://instagram.com/somskool',
+        social_linkedin: 'https://linkedin.com/company/somskool',
+        social_youtube: 'https://youtube.com/@somskool'
       }
     }
 
@@ -171,7 +177,13 @@ export async function getPageSettings() {
       contact_subtitle: 'Fadlan nala soo xiriir haddii aad hayso wax su\'aalo ah',
       contact_text: 'SomSkool waxay diyaar u tahay inay ku caawiso. Nala soo xiriir maanta.',
       contact_phone: '+252 63 XXX XXXX',
-      contact_header_image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80'
+      contact_header_image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80',
+      contact_email: 'support@somskool.com',
+      contact_address: 'Hargeisa, Somaliland',
+      social_facebook: 'https://facebook.com/somskool',
+      social_instagram: 'https://instagram.com/somskool',
+      social_linkedin: 'https://linkedin.com/company/somskool',
+      social_youtube: 'https://youtube.com/@somskool'
     }
   }
 }
@@ -189,6 +201,12 @@ export async function savePageSettings(settings: {
   contact_text: string;
   contact_phone: string;
   contact_header_image: string;
+  contact_email: string;
+  contact_address: string;
+  social_facebook: string;
+  social_instagram: string;
+  social_linkedin: string;
+  social_youtube: string;
 }) {
   const user = await getSessionUser()
   if (!user || user.role !== 'admin') {
@@ -208,7 +226,13 @@ export async function savePageSettings(settings: {
         contact_subtitle: settings.contact_subtitle,
         contact_text: settings.contact_text,
         contact_phone: settings.contact_phone,
-        contact_header_image: settings.contact_header_image
+        contact_header_image: settings.contact_header_image,
+        contact_email: settings.contact_email,
+        contact_address: settings.contact_address,
+        social_facebook: settings.social_facebook,
+        social_instagram: settings.social_instagram,
+        social_linkedin: settings.social_linkedin,
+        social_youtube: settings.social_youtube
       })
       .eq('id', 1)
 

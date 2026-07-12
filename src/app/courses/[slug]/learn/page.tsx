@@ -2,6 +2,7 @@ import React from 'react'
 import { getCourseBySlug, isCourseEnrolled } from '@/lib/actions/courses'
 import { getCourseVideos, getStudentProgress } from '@/lib/actions/learning'
 import { getSessionUser } from '@/lib/actions/auth'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import LearningClient from '@/components/LearningClient'
 
@@ -32,15 +33,23 @@ export default async function LearnPage({ params }: PageProps) {
     redirect(`/payment?courseId=${course.id}`)
   }
 
-  // 4. Fetch Videos and Progress
+  // 4. Fetch Videos, Progress, and Documents
   const { data: videos = [] } = await getCourseVideos(course.id)
   const { data: progress = [] } = await getStudentProgress(course.id)
+  
+  const supabase = await createClient()
+  const { data: documents } = await supabase
+    .from('documents')
+    .select('*')
+    .eq('course_id', course.id)
+    .order('created_at', { ascending: false })
 
   return (
     <LearningClient 
       course={course} 
       videos={videos || []} 
       progress={progress || []} 
+      documents={documents || []}
     />
   )
 }

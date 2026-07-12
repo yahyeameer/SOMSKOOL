@@ -76,7 +76,7 @@ export default function ContactClient({ settings }: { settings: any }) {
               </div>
               <div>
                 <h4 className="text-sm font-bold text-brand-dark">{t('location')}</h4>
-                <p className="text-xs text-gray-500 font-medium mt-0.5">Hargeisa, Somaliland</p>
+                <p className="text-xs text-gray-500 font-medium mt-0.5">{settings.contact_address || 'Hargeisa, Somaliland'}</p>
               </div>
             </div>
 
@@ -87,8 +87,8 @@ export default function ContactClient({ settings }: { settings: any }) {
               </div>
               <div>
                 <h4 className="text-sm font-bold text-brand-dark">{t('email_label')}</h4>
-                <a href="mailto:support@somskool.com" className="text-xs text-brand-primary font-semibold hover:underline mt-0.5 block">
-                  support@somskool.com
+                <a href={`mailto:${settings.contact_email || 'support@somskool.com'}`} className="text-xs text-brand-primary font-semibold hover:underline mt-0.5 block">
+                  {settings.contact_email || 'support@somskool.com'}
                 </a>
               </div>
             </div>

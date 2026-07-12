@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getSessionUser } from "@/lib/actions/auth";
+import { getPageSettings } from "@/lib/actions/admin";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -27,6 +28,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const user = await getSessionUser();
+  const pageSettings = await getPageSettings();
 
   return (
     <html lang="en" className={`${jakarta.variable} ${dmSans.variable}`}>
@@ -34,7 +36,7 @@ export default async function RootLayout({
         <LanguageProvider>
           <Navbar user={user} />
           <main className="flex-1 flex flex-col">{children}</main>
-          <Footer />
+          <Footer settings={pageSettings} />
         </LanguageProvider>
       </body>
     </html>

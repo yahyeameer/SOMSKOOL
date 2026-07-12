@@ -32,6 +32,9 @@ export interface DashboardData {
     completed_at: string
     points_awarded: number
   }[]
+  payments: any[]
+  documents: any[]
+  allVideos: any[]
 }
 
 /**
@@ -144,6 +147,30 @@ export async function getStudentDashboardData(): Promise<{ data: DashboardData |
       points_awarded: p.course_videos?.points_awarded || 10
     }))
 
+    // 9. Fetch payments history
+    const { data: dbPayments } = await supabase
+      .from('payments')
+      .select('*, courses(title)')
+      .eq('student_id', user.id)
+      .order('created_at', { ascending: false })
+
+    // 10. Fetch documents for enrolled courses
+    let dbDocuments: any[] = []
+    if (enrolledCourseIds.length > 0) {
+      const { data: docs } = await supabase
+        .from('documents')
+        .select('*')
+        .in('course_id', enrolledCourseIds)
+        .order('created_at', { ascending: false })
+      dbDocuments = docs || []
+    }
+
+    // 11. Fetch all videos with courses information for the videos tab
+    const { data: dbVideos } = await supabase
+      .from('course_videos')
+      .select('*, courses(title, slug)')
+      .order('created_at', { ascending: false })
+
     return {
       data: {
         profile: {
@@ -159,7 +186,10 @@ export async function getStudentDashboardData(): Promise<{ data: DashboardData |
         totalPoints: profile?.points || 0,
         leaderboardRank: leaderboardRank || 0,
         totalCompletedVideos,
-        recentActivity
+        recentActivity,
+        payments: dbPayments || [],
+        documents: dbDocuments,
+        allVideos: dbVideos || []
       },
       error: null
     }

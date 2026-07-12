@@ -3,6 +3,7 @@
 import React, { useState, useTransition } from 'react'
 import { Course, Payment, CourseVideo } from '@/types'
 import { modifyPaymentStatus, submitDocumentUpload, saveVideoSettings, addCourseVideo, deleteCourseVideo } from '@/lib/actions/admin'
+import { extractYoutubeId } from '@/lib/utils'
 import { 
   CheckCircle, 
   XCircle, 
@@ -103,16 +104,31 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
   const [contactText, setContactText] = useState(pageSettings?.contact_text || '')
   const [contactPhone, setContactPhone] = useState(pageSettings?.contact_phone || '')
   const [contactImage, setContactImage] = useState(pageSettings?.contact_header_image || '')
+  const [contactEmail, setContactEmail] = useState(pageSettings?.contact_email || '')
+  const [contactAddress, setContactAddress] = useState(pageSettings?.contact_address || '')
+  
+  const [socialFacebook, setSocialFacebook] = useState(pageSettings?.social_facebook || '')
+  const [socialInstagram, setSocialInstagram] = useState(pageSettings?.social_instagram || '')
+  const [socialLinkedin, setSocialLinkedin] = useState(pageSettings?.social_linkedin || '')
+  const [socialYoutube, setSocialYoutube] = useState(pageSettings?.social_youtube || '')
+
   const [pageMessage, setPageMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   const [isPending, startTransition] = useTransition()
 
   // Tab 1 Actions: Approve / Reject Payments
   const handlePaymentAction = async (paymentId: string, status: 'confirmed' | 'failed') => {
+    let rejectReason: string | undefined = undefined;
+    if (status === 'failed') {
+      const reason = window.prompt("Fadlan qor sababta aad u diidayso lacagtan (tusaale: 'Lacagtii ima soo gaarin'):");
+      if (reason === null) return; // User cancelled the prompt
+      rejectReason = reason.trim();
+    }
+    
     startTransition(async () => {
-      const res = await modifyPaymentStatus(paymentId, status)
+      const res = await modifyPaymentStatus(paymentId, status, rejectReason)
       if (res.success) {
-        setPayments(prev => prev.map(p => p.id === paymentId ? { ...p, status } : p))
+        setPayments(prev => prev.map(p => p.id === paymentId ? { ...p, status, reject_reason: rejectReason } : p))
       } else {
         alert(res.error || 'Khalad ayaa ka dhacay ansixinta.')
       }
@@ -124,9 +140,14 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
     e.preventDefault()
     setDocMessage(null)
 
-    if (!docTitle) {
-      setDocMessage({ type: 'error', text: 'Fadlan ku qor magaca dokumentiga.' })
+    if (!docTitle || !docUrl) {
+      setDocMessage({ type: 'error', text: 'Fadlan ku qor magaca dokumentiga iyo URL-kiisa.' })
       return
+    }
+
+    let finalUrl = docUrl.trim();
+    if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+      finalUrl = 'https://' + finalUrl;
     }
 
     startTransition(async () => {
@@ -134,7 +155,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         title: docTitle,
         courseId: docCourse,
         type: docType,
-        url: docUrl || 'https://somskool.com/uploads/syllabus.pdf'
+        url: finalUrl
       })
 
       if (res.success) {
@@ -239,10 +260,11 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
     }
 
     startTransition(async () => {
+      const cleanedId = extractYoutubeId(moduleYoutubeId)
       const res = await addCourseVideo({
         course_id: moduleCourse,
         title: moduleTitle,
-        youtube_id: moduleYoutubeId,
+        youtube_id: cleanedId,
         points_awarded: modulePoints,
         order_index: videoList.filter(v => v.course_id === moduleCourse).length + 1
       })
@@ -253,7 +275,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           id: 'temp-' + Math.random(),
           course_id: moduleCourse,
           title: moduleTitle,
-          youtube_id: res.finalYoutubeId || moduleYoutubeId,
+          youtube_id: res.finalYoutubeId || cleanedId,
           points_awarded: modulePoints,
           order_index: videoList.filter(v => v.course_id === moduleCourse).length + 1,
           created_at: new Date().toISOString()
@@ -379,7 +401,13 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         contact_subtitle: contactSubtitle,
         contact_text: contactText,
         contact_phone: contactPhone,
-        contact_header_image: contactImage
+        contact_header_image: contactImage,
+        contact_email: contactEmail,
+        contact_address: contactAddress,
+        social_facebook: socialFacebook,
+        social_instagram: socialInstagram,
+        social_linkedin: socialLinkedin,
+        social_youtube: socialYoutube
       })
 
       if (res.success) {
@@ -673,6 +701,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                         value={docUrl}
                         onChange={(e) => setDocUrl(e.target.value)}
                         className="rounded-xl border-gray-200"
+                        required
                       />
                     </div>
                   </div>
@@ -1417,6 +1446,41 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                         className="w-full h-24 p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
                         required
                       />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-gray-500">Contact Email</Label>
+                        <Input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="e.g. support@somskool.com" className="rounded-xl border-gray-200" required />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-gray-500">Contact Address</Label>
+                        <Input value={contactAddress} onChange={(e) => setContactAddress(e.target.value)} placeholder="e.g. Hargeisa, Somaliland" className="rounded-xl border-gray-200" required />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Social Media Section */}
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-lg border-b pb-2">Social Media Links</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-gray-500">Facebook URL</Label>
+                        <Input value={socialFacebook} onChange={(e) => setSocialFacebook(e.target.value)} placeholder="https://facebook.com/..." className="rounded-xl border-gray-200" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-gray-500">Instagram URL</Label>
+                        <Input value={socialInstagram} onChange={(e) => setSocialInstagram(e.target.value)} placeholder="https://instagram.com/..." className="rounded-xl border-gray-200" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-gray-500">LinkedIn URL</Label>
+                        <Input value={socialLinkedin} onChange={(e) => setSocialLinkedin(e.target.value)} placeholder="https://linkedin.com/company/..." className="rounded-xl border-gray-200" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-bold text-gray-500">YouTube URL</Label>
+                        <Input value={socialYoutube} onChange={(e) => setSocialYoutube(e.target.value)} placeholder="https://youtube.com/@..." className="rounded-xl border-gray-200" />
+                      </div>
                     </div>
                   </div>
 

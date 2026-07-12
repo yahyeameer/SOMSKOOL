@@ -18,11 +18,14 @@ export async function submitPayment(formData: {
 
   try {
     const supabase = await createClient()
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+    const studentEmail = authUser?.email || formData.email || 'barte@somskool.com'
+
     const { error } = await supabase.from('payments').insert({
       student_id: user.id,
       course_id: formData.courseId,
       full_name: formData.fullName,
-      email: formData.email,
+      email: studentEmail,
       phone_number: formData.phone,
       payment_method: formData.method,
       transaction_reference: formData.reference,

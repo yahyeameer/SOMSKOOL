@@ -53,7 +53,7 @@ const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 )
 
-export default function Footer() {
+export default function Footer({ settings }: { settings?: any }) {
   const [email, setEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
 
@@ -81,14 +81,17 @@ export default function Footer() {
               Waxaan u taaganahay inaan bulshada Soomaaliyeed u soo gudbino casharo tayo sare leh oo ku baxaya luuqadooda hooyo, si ay u dhistaan mustaqbal ifaya.
             </p>
             <div className="flex items-center gap-4">
-              <a href="https://facebook.com/somskool" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-white/5 hover:bg-brand-primary flex items-center justify-center transition-colors text-gray-400 hover:text-white">
+              <a href={settings?.social_facebook || "https://facebook.com/somskool"} target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-white/5 hover:bg-brand-primary flex items-center justify-center transition-colors text-gray-400 hover:text-white">
                 <FacebookIcon className="h-5 w-5" />
               </a>
-              <a href="https://instagram.com/somskool" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-white/5 hover:bg-brand-primary flex items-center justify-center transition-colors text-gray-400 hover:text-white">
+              <a href={settings?.social_instagram || "https://instagram.com/somskool"} target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-white/5 hover:bg-brand-primary flex items-center justify-center transition-colors text-gray-400 hover:text-white">
                 <InstagramIcon className="h-5 w-5" />
               </a>
-              <a href="https://linkedin.com/company/somskool" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-white/5 hover:bg-brand-primary flex items-center justify-center transition-colors text-gray-400 hover:text-white">
+              <a href={settings?.social_linkedin || "https://linkedin.com/company/somskool"} target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-white/5 hover:bg-brand-primary flex items-center justify-center transition-colors text-gray-400 hover:text-white">
                 <LinkedinIcon className="h-5 w-5" />
+              </a>
+              <a href={settings?.social_youtube || "https://youtube.com/@somskool"} target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-white/5 hover:bg-red-600 flex items-center justify-center transition-colors text-gray-400 hover:text-white">
+                <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
               </a>
             </div>
           </div>
