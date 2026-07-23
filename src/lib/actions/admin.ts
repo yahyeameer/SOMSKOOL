@@ -1,7 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { getSessionUser } from './auth'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getSessionUser, requireAdmin } from './auth'
 import { revalidatePath } from 'next/cache'
 import { Course } from '@/types'
 
@@ -275,24 +276,11 @@ export async function getStaffMembers() {
  * Create a new staff account (uses service role to bypass email confirmation)
  */
 export async function createStaffAccount(staffData: { full_name: string, email: string, role: string, password: string }) {
-  const user = await getSessionUser()
-  if (!user || user.role !== 'admin') {
-    return { error: 'Fadlan hubi inaad tahay maamule (admin) si aad u sameyso ficilkan.' }
-  }
-
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!serviceRoleKey) {
-    return { error: 'SUPABASE_SERVICE_ROLE_KEY is missing from .env.local' }
-  }
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
 
   try {
-    const { createClient: createAdminClient } = await import('@supabase/supabase-js')
-    const adminAuthClient = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
+    const adminAuthClient = createAdminClient()
 
     // Create user via Admin API (automatically confirms email)
     const { data: newUser, error: createError } = await adminAuthClient.auth.admin.createUser({
@@ -627,24 +615,11 @@ export async function deleteRole(id: string) {
  * Regenerate a staff member's password
  */
 export async function regenerateStaffPassword(userId: string) {
-  const user = await getSessionUser()
-  if (!user || user.role !== 'admin') {
-    return { error: 'Fadlan hubi inaad tahay maamule (admin) si aad u sameyso ficilkan.' }
-  }
-
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!serviceRoleKey) {
-    return { error: 'SUPABASE_SERVICE_ROLE_KEY is missing from .env.local' }
-  }
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
 
   try {
-    const { createClient: createAdminClient } = await import('@supabase/supabase-js')
-    const adminAuthClient = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
+    const adminAuthClient = createAdminClient()
 
     // Generate a random 8-character password
     const newPassword = Math.random().toString(36).slice(-8)

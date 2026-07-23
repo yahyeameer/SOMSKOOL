@@ -129,15 +129,21 @@ export async function getStudentDashboardData(): Promise<{ data: DashboardData |
 
     const leaderboardRank = (allStudents || []).findIndex(s => s.id === user.id) + 1
 
-    // 7. Total completed videos
+    // 7. Total completed videos (full count, not limited to the recent slice)
+    const { count: completedCount } = await supabase
+      .from('student_progress')
+      .select('*', { count: 'exact', head: true })
+      .eq('student_id', user.id)
+
+    const totalCompletedVideos = completedCount || 0
+
+    // Recent progress rows (with joins) for the activity feed only
     const { data: allProgress } = await supabase
       .from('student_progress')
       .select('*, course_videos(title, points_awarded), courses(title)')
       .eq('student_id', user.id)
       .order('completed_at', { ascending: false })
       .limit(10)
-
-    const totalCompletedVideos = (allProgress || []).length
 
     // 8. Build recent activity
     const recentActivity = (allProgress || []).slice(0, 8).map((p: any) => ({
