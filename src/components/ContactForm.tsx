@@ -132,17 +132,8 @@ export default function ContactForm() {
           disabled={loading}
           className="w-full rounded-2xl bg-gradient-to-r from-brand-primary to-[#4834D4] hover:shadow-xl hover:shadow-brand-primary/30 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 font-bold py-7 text-base gap-2 cursor-pointer"
         >
-          {loading ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin" />
-              {t('sending')}
-            </>
-          ) : (
-            <>
-              <Send className="h-5 w-5" />
-              {t('submit_message')}
-            </>
-          )}
+          {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+          Submit
         </Button>
       </form>
     </div>

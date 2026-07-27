@@ -3,10 +3,11 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { signUp } from '@/lib/actions/auth'
-import { BookOpen, KeyRound, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import SomSkoolLogo from '@/components/SomSkoolLogo'
 import { useLanguage } from '@/contexts/LanguageContext'
 
 export default function RegisterPage() {
@@ -44,12 +45,10 @@ export default function RegisterPage() {
       {/* 🚀 LEFT PANEL - Decorative Brand Panel (Hidden on Mobile) */}
       <div className="hidden lg:flex lg:w-1/2 bg-brand-primary p-16 flex-col justify-between relative overflow-hidden text-white text-left">
         {/* Brand Header */}
-        <div className="flex items-center gap-3 relative z-10">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-brand-primary shadow-md">
-            <BookOpen className="h-6 w-6" />
-          </div>
+        <Link href="/" className="flex items-center gap-3 relative z-10 w-fit">
+          <SomSkoolLogo size={44} className="bg-white p-1 rounded-xl shadow-md" />
           <span className="font-display text-2xl font-bold tracking-tight">SOMSKOOL</span>
-        </div>
+        </Link>
 
         {/* Brand Focus */}
         <div className="space-y-6 relative z-10 my-auto">
@@ -79,12 +78,10 @@ export default function RegisterPage() {
         <div className="w-full max-w-md space-y-8 text-left">
           {/* Header Mobile Brand details */}
           <div className="space-y-3">
-            <div className="flex lg:hidden items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-primary text-white shadow-md">
-                <BookOpen className="h-5 w-5" />
-              </div>
+            <Link href="/" className="flex lg:hidden items-center gap-3 w-fit">
+              <SomSkoolLogo size={40} className="rounded-xl" />
               <span className="font-display text-xl font-bold tracking-tight text-brand-dark">SOMSKOOL</span>
-            </div>
+            </Link>
             <h2 className="font-display text-3xl font-extrabold text-brand-dark">
               {t('create_account')}
             </h2>
@@ -94,9 +91,9 @@ export default function RegisterPage() {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Full Name field */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="full_name" className="text-xs font-bold text-gray-500 uppercase">{t('full_name')}</Label>
               <Input
                 id="full_name"
@@ -109,7 +106,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Email or Phone field */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="emailOrPhone" className="text-xs font-bold text-gray-500 uppercase">{t('email_or_phone_label')}</Label>
               <Input
                 id="emailOrPhone"
@@ -124,41 +121,40 @@ export default function RegisterPage() {
             {/* Hidden Role field */}
             <input type="hidden" name="role" value="student" />
 
-            {/* Password field */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Pass 1 */}
-              <div className="space-y-1">
-                <Label htmlFor="password" className="text-xs font-bold text-gray-500 uppercase">{t('password')}</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    placeholder={t('password_placeholder')}
-                    className="bg-white border-gray-200 text-brand-dark pr-10 font-medium rounded-xl focus-visible:ring-brand-primary"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3.5 text-gray-400 hover:text-brand-primary"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-              {/* Pass 2 */}
-              <div className="space-y-1">
-                <Label htmlFor="confirm_password" className="text-xs font-bold text-gray-500 uppercase">{t('confirm_password')}</Label>
+            {/* Password */}
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-xs font-bold text-gray-500 uppercase">{t('password')}</Label>
+              <div className="relative">
                 <Input
-                  id="confirm_password"
-                  name="confirm_password"
+                  id="password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder={t('confirm_password_placeholder')}
-                  className="bg-white border-gray-200 text-brand-dark font-medium rounded-xl focus-visible:ring-brand-primary"
+                  placeholder={t('password_placeholder')}
+                  className="bg-white border-gray-200 text-brand-dark pr-10 font-medium rounded-xl focus-visible:ring-brand-primary"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-3.5 text-gray-400 hover:text-brand-primary"
+                >
+                  {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+                </button>
               </div>
+            </div>
+
+            {/* Confirm Password */}
+            <div className="space-y-1.5">
+              <Label htmlFor="confirm_password" className="text-xs font-bold text-gray-500 uppercase">{t('confirm_password')}</Label>
+              <Input
+                id="confirm_password"
+                name="confirm_password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                placeholder={t('confirm_password_placeholder')}
+                className="bg-white border-gray-200 text-brand-dark font-medium rounded-xl focus-visible:ring-brand-primary"
+              />
             </div>
 
             {/* Error notifications */}
@@ -180,14 +176,8 @@ export default function RegisterPage() {
               disabled={loading}
               className="w-full rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-bold py-6 text-base gap-2 shadow-lg shadow-brand-primary/15 transition-all cursor-pointer"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  {t('registering')}
-                </>
-              ) : (
-                t('register_button')
-              )}
+              {loading && <Loader2 className="h-5 w-5 animate-spin" />}
+              Register
             </Button>
           </form>
 

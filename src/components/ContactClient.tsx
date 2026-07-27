@@ -107,24 +107,6 @@ export default function ContactClient({ settings }: { settings: any }) {
             </div>
           </div>
 
-          {/* Social Row */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-              {t('follow_social')}
-            </h4>
-            <div className="flex items-center gap-3">
-              <a href="https://facebook.com/somskool" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-brand-primary/5 hover:bg-brand-primary hover:text-white text-brand-primary flex items-center justify-center transition-all">
-                <FacebookIcon className="h-5 w-5" />
-              </a>
-              <a href="https://instagram.com/somskool" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-brand-primary/5 hover:bg-brand-primary hover:text-white text-brand-primary flex items-center justify-center transition-all">
-                <InstagramIcon className="h-5 w-5" />
-              </a>
-              <a href="https://linkedin.com/company/somskool" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-brand-primary/5 hover:bg-brand-primary hover:text-white text-brand-primary flex items-center justify-center transition-all">
-                <LinkedinIcon className="h-5 w-5" />
-              </a>
-            </div>
-          </div>
-
           {/* Support Hours */}
           <div className="bg-brand-primary/[0.02] border border-brand-primary/10 rounded-xl p-5 space-y-3">
             <div className="flex items-center gap-2">
@@ -144,6 +126,24 @@ export default function ContactClient({ settings }: { settings: any }) {
                 <span>{t('sunday')}</span>
                 <span className="font-bold text-red-400">{t('closed')}</span>
               </div>
+            </div>
+          </div>
+
+          {/* Social Row — placed below the working hours */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+              {t('follow_social')}
+            </h4>
+            <div className="flex items-center gap-3">
+              <a href="https://facebook.com/somskool" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="h-10 w-10 rounded-full bg-brand-primary/5 hover:bg-brand-primary hover:text-white text-brand-primary flex items-center justify-center transition-all">
+                <FacebookIcon className="h-5 w-5" />
+              </a>
+              <a href="https://instagram.com/somskool" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="h-10 w-10 rounded-full bg-brand-primary/5 hover:bg-brand-primary hover:text-white text-brand-primary flex items-center justify-center transition-all">
+                <InstagramIcon className="h-5 w-5" />
+              </a>
+              <a href="https://linkedin.com/company/somskool" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="h-10 w-10 rounded-full bg-brand-primary/5 hover:bg-brand-primary hover:text-white text-brand-primary flex items-center justify-center transition-all">
+                <LinkedinIcon className="h-5 w-5" />
+              </a>
             </div>
           </div>
         </div>

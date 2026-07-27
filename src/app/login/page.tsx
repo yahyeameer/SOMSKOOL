@@ -3,10 +3,11 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { signIn } from '@/lib/actions/auth'
-import { BookOpen, KeyRound, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import SomSkoolLogo from '@/components/SomSkoolLogo'
 import { useLanguage } from '@/contexts/LanguageContext'
 
 export default function LoginPage() {
@@ -34,12 +35,10 @@ export default function LoginPage() {
       {/* 🚀 LEFT PANEL - Decorative Brand Panel (Hidden on Mobile) */}
       <div className="hidden lg:flex lg:w-1/2 bg-brand-primary p-16 flex-col justify-between relative overflow-hidden text-white text-left">
         {/* Brand Header */}
-        <div className="flex items-center gap-3 relative z-10">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-brand-primary shadow-md">
-            <BookOpen className="h-6 w-6" />
-          </div>
+        <Link href="/" className="flex items-center gap-3 relative z-10 w-fit">
+          <SomSkoolLogo size={44} className="bg-white p-1 rounded-xl shadow-md" />
           <span className="font-display text-2xl font-bold tracking-tight">SOMSKOOL</span>
-        </div>
+        </Link>
 
         {/* Brand Focus */}
         <div className="space-y-6 relative z-10 my-auto">
@@ -69,12 +68,10 @@ export default function LoginPage() {
         <div className="w-full max-w-md space-y-8 text-left">
           {/* Header Mobile Brand details */}
           <div className="space-y-3">
-            <div className="flex lg:hidden items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-primary text-white shadow-md">
-                <BookOpen className="h-5 w-5" />
-              </div>
+            <Link href="/" className="flex lg:hidden items-center gap-3 w-fit">
+              <SomSkoolLogo size={40} className="rounded-xl" />
               <span className="font-display text-xl font-bold tracking-tight text-brand-dark">SOMSKOOL</span>
-            </div>
+            </Link>
             <h2 className="font-display text-3xl font-extrabold text-brand-dark">
               {t('welcome_back')}
             </h2>
@@ -137,14 +134,8 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-bold py-6 text-base gap-2 shadow-lg shadow-brand-primary/15 transition-all cursor-pointer"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  {t('logging_in')}
-                </>
-              ) : (
-                t('login_button')
-              )}
+              {loading && <Loader2 className="h-5 w-5 animate-spin" />}
+              Login
             </Button>
           </form>
 

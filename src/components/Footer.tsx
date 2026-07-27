@@ -72,25 +72,25 @@ export default function Footer({ settings }: { settings?: any }) {
           {/* Column 1: Brand Info */}
           <div className="space-y-6">
             <Link href="/" className="flex items-center gap-3">
-              <SomSkoolLogo size={44} className="shadow-md shadow-brand-primary/25 rounded-xl" />
-              <span className="font-display text-2xl font-bold tracking-tight">
-                Som<span className="text-brand-accent">Skool</span>
+              <SomSkoolLogo size={44} className="bg-white p-1 shadow-md shadow-black/10 rounded-xl" />
+              <span className="font-display text-2xl font-bold tracking-tight text-white">
+                SOMSKOOL
               </span>
             </Link>
-            <p className="text-gray-400 text-sm leading-relaxed">
+            <p className="text-white/80 text-sm leading-relaxed">
               Waxaan u taaganahay inaan bulshada Soomaaliyeed u soo gudbino casharo tayo sare leh oo ku baxaya luuqadooda hooyo, si ay u dhistaan mustaqbal ifaya.
             </p>
             <div className="flex items-center gap-4">
-              <a href={settings?.social_facebook || "https://facebook.com/somskool"} target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-white/5 hover:bg-brand-primary flex items-center justify-center transition-colors text-gray-400 hover:text-white">
+              <a href={settings?.social_facebook || "https://facebook.com/somskool"} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="h-10 w-10 rounded-full bg-white/10 hover:bg-white flex items-center justify-center transition-colors text-white hover:text-brand-primary">
                 <FacebookIcon className="h-5 w-5" />
               </a>
-              <a href={settings?.social_instagram || "https://instagram.com/somskool"} target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-white/5 hover:bg-brand-primary flex items-center justify-center transition-colors text-gray-400 hover:text-white">
+              <a href={settings?.social_instagram || "https://instagram.com/somskool"} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="h-10 w-10 rounded-full bg-white/10 hover:bg-white flex items-center justify-center transition-colors text-white hover:text-brand-primary">
                 <InstagramIcon className="h-5 w-5" />
               </a>
-              <a href={settings?.social_linkedin || "https://linkedin.com/company/somskool"} target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-white/5 hover:bg-brand-primary flex items-center justify-center transition-colors text-gray-400 hover:text-white">
+              <a href={settings?.social_linkedin || "https://linkedin.com/company/somskool"} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="h-10 w-10 rounded-full bg-white/10 hover:bg-white flex items-center justify-center transition-colors text-white hover:text-brand-primary">
                 <LinkedinIcon className="h-5 w-5" />
               </a>
-              <a href={settings?.social_youtube || "https://youtube.com/@somskool"} target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-white/5 hover:bg-red-600 flex items-center justify-center transition-colors text-gray-400 hover:text-white">
+              <a href={settings?.social_youtube || "https://youtube.com/@somskool"} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="h-10 w-10 rounded-full bg-white/10 hover:bg-red-600 flex items-center justify-center transition-colors text-white">
                 <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
               </a>
             </div>
@@ -104,7 +104,7 @@ export default function Footer({ settings }: { settings?: any }) {
             <ul className="space-y-4">
               {['About Us', 'All Courses', 'Contact support'].map((link) => (
                 <li key={link}>
-                  <Link href={link === 'All Courses' ? '/courses' : link === 'Contact support' ? '/contact' : '/about'} className="text-white/70 hover:text-white transition-colors text-sm font-medium">
+                  <Link href={link === 'All Courses' ? '/courses' : link === 'Contact support' ? '/contact' : '/about'} className="text-white/85 hover:text-white transition-colors text-sm font-medium">
                     {link}
                   </Link>
                 </li>
@@ -126,7 +126,7 @@ export default function Footer({ settings }: { settings?: any }) {
                 { name: 'Business Strategy', slug: 'business' },
               ].map((cat) => (
                 <li key={cat.slug}>
-                  <Link href={`/courses?category=${cat.slug}`} className="text-white/70 hover:text-white transition-colors text-sm font-medium">
+                  <Link href={`/courses?category=${cat.slug}`} className="text-white/85 hover:text-white transition-colors text-sm font-medium">
                     {cat.name}
                   </Link>
                 </li>
@@ -139,7 +139,7 @@ export default function Footer({ settings }: { settings?: any }) {
             <h3 className="text-sm font-semibold uppercase tracking-wider text-brand-accent mb-6 font-display">
               Wargeyskayaga
             </h3>
-            <p className="text-white/70 text-sm leading-relaxed">
+            <p className="text-white/85 text-sm leading-relaxed">
               Ku biir wargeyskayaga si aad u hesho ogeysiisyada koorsooyinka cusub iyo qiimo dhimista.
             </p>
             {subscribed ? (
@@ -154,7 +154,7 @@ export default function Footer({ settings }: { settings?: any }) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-white/5 border-white/10 text-white placeholder-gray-500 rounded-xl focus-visible:ring-brand-primary"
+                  className="bg-white/10 border-white/25 text-white placeholder:text-white/60 rounded-xl focus-visible:ring-white/50"
                 />
                 <Button type="submit" className="w-full rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-brand-dark font-semibold gap-2 shadow-lg shadow-brand-accent/15 transition-all">
                   <Send className="h-4 w-4" />
@@ -166,7 +166,7 @@ export default function Footer({ settings }: { settings?: any }) {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/70 font-medium">
+        <div className="mt-16 pt-8 border-t border-white/20 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/85 font-medium">
           <p>© {new Date().getFullYear()} SomSkool. Xuquuqda oo dhan waa dhowran tahay.</p>
           <div className="flex items-center gap-6">
             <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>

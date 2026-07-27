@@ -205,17 +205,9 @@ export default function PaymentForm({ courseId, title, price, user }: PaymentFor
           disabled={loading}
           className="w-full rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-brand-dark font-bold py-6 text-base gap-2 shadow-lg shadow-brand-accent/15 cursor-pointer"
         >
-          {loading ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin" />
-              {t('submitting')}
-            </>
-          ) : (
-            <>
-              {t('submit_details')}
-              <ArrowRight className="h-5 w-5" />
-            </>
-          )}
+          {loading && <Loader2 className="h-5 w-5 animate-spin" />}
+          Submit
+          {!loading && <ArrowRight className="h-5 w-5" />}
         </Button>
       </form>
     </div>
