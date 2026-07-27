@@ -66,7 +66,7 @@ export default function Footer({ settings }: { settings?: any }) {
   }
 
   return (
-    <footer className="bg-brand-primary text-white pt-16 pb-8 border-t border-white/5 font-sans">
+    <footer className="bg-brand-dark text-white pt-16 pb-8 border-t border-white/5 font-sans">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Column 1: Brand Info */}
@@ -81,13 +81,13 @@ export default function Footer({ settings }: { settings?: any }) {
               Waxaan u taaganahay inaan bulshada Soomaaliyeed u soo gudbino casharo tayo sare leh oo ku baxaya luuqadooda hooyo, si ay u dhistaan mustaqbal ifaya.
             </p>
             <div className="flex items-center gap-4">
-              <a href={settings?.social_facebook || "https://facebook.com/somskool"} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="h-10 w-10 rounded-full bg-white/10 hover:bg-white flex items-center justify-center transition-colors text-white hover:text-brand-primary">
+              <a href={settings?.social_facebook || "https://facebook.com/somskool"} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="h-10 w-10 rounded-full bg-white/10 hover:bg-brand-primary flex items-center justify-center transition-colors text-white">
                 <FacebookIcon className="h-5 w-5" />
               </a>
-              <a href={settings?.social_instagram || "https://instagram.com/somskool"} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="h-10 w-10 rounded-full bg-white/10 hover:bg-white flex items-center justify-center transition-colors text-white hover:text-brand-primary">
+              <a href={settings?.social_instagram || "https://instagram.com/somskool"} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="h-10 w-10 rounded-full bg-white/10 hover:bg-brand-primary flex items-center justify-center transition-colors text-white">
                 <InstagramIcon className="h-5 w-5" />
               </a>
-              <a href={settings?.social_linkedin || "https://linkedin.com/company/somskool"} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="h-10 w-10 rounded-full bg-white/10 hover:bg-white flex items-center justify-center transition-colors text-white hover:text-brand-primary">
+              <a href={settings?.social_linkedin || "https://linkedin.com/company/somskool"} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="h-10 w-10 rounded-full bg-white/10 hover:bg-brand-primary flex items-center justify-center transition-colors text-white">
                 <LinkedinIcon className="h-5 w-5" />
               </a>
               <a href={settings?.social_youtube || "https://youtube.com/@somskool"} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="h-10 w-10 rounded-full bg-white/10 hover:bg-red-600 flex items-center justify-center transition-colors text-white">
@@ -98,7 +98,7 @@ export default function Footer({ settings }: { settings?: any }) {
 
           {/* Column 2: Quick Links */}
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-brand-accent mb-6 font-display">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6 font-display">
               Xiriirada Degdega ah
             </h3>
             <ul className="space-y-4">
@@ -114,7 +114,7 @@ export default function Footer({ settings }: { settings?: any }) {
 
           {/* Column 3: Top Categories */}
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-brand-accent mb-6 font-display">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6 font-display">
               Qeybaha ugu caansan
             </h3>
             <ul className="space-y-4">
@@ -136,7 +136,7 @@ export default function Footer({ settings }: { settings?: any }) {
 
           {/* Column 4: Newsletter */}
           <div className="space-y-6">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-brand-accent mb-6 font-display">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6 font-display">
               Wargeyskayaga
             </h3>
             <p className="text-white/85 text-sm leading-relaxed">
