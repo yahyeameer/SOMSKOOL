@@ -7,14 +7,15 @@ import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import SomSkoolLogo from '@/components/SomSkoolLogo'
-import { useLanguage } from '@/contexts/LanguageContext'
+import SocialAuthButtons from '@/components/SocialAuthButtons'
+
+const fieldClass =
+  'h-11 rounded-lg border-0 bg-[#F4F4F8] px-3.5 text-sm font-medium text-brand-dark placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-brand-primary/40'
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { t } = useLanguage()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -22,12 +23,12 @@ export default function RegisterPage() {
     setError(null)
 
     const formData = new FormData(e.currentTarget)
-    
+
     // Client side confirmation validation
     const password = formData.get('password') as string
     const confirmPassword = formData.get('confirm_password') as string
     if (password !== confirmPassword) {
-      setError(t('password_mismatch') || 'Furayaasha aad qortay isku mid ma aha!')
+      setError('Passwords do not match.')
       setLoading(false)
       return
     }
@@ -41,164 +42,136 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-80px)] w-full font-sans bg-white">
-      {/* 🚀 LEFT PANEL - Decorative Brand Panel (Hidden on Mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-brand-primary p-16 flex-col justify-between relative overflow-hidden text-white text-left">
-        {/* Brand Header */}
-        <Link href="/" className="flex items-center gap-3 relative z-10 w-fit">
-          <SomSkoolLogo size={44} className="bg-white p-1 rounded-xl shadow-md" />
-          <span className="font-display text-2xl font-bold tracking-tight">SOMSKOOL</span>
-        </Link>
+    <div className="relative flex min-h-[calc(100vh-80px)] w-full items-center justify-center overflow-hidden bg-[#FAFAFE] px-4 py-16 font-sans">
+      {/* Soft radial brand glow behind the card */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[560px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-primary/[0.07] blur-[90px]" />
 
-        {/* Brand Focus */}
-        <div className="space-y-6 relative z-10 my-auto">
-          <Badge className="bg-white/10 hover:bg-white/10 text-white border border-white/20 px-4 py-1.5 rounded-full text-xs w-fit">
-            {t('quality_education')}
-          </Badge>
-          <h1 className="font-display text-5xl font-extrabold leading-tight tracking-tight">
-            Build Your <br />
-            <span className="text-brand-accent">Future.</span>
+      <div className="relative z-10 w-full max-w-md">
+        {/* Heading */}
+        <div className="mb-8 space-y-2 text-center">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-primary">
+            Get Started
+          </p>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-brand-dark sm:text-4xl">
+            Create Account
           </h1>
-          <p className="text-white/80 text-base leading-relaxed max-w-md">
-            {t('join_thousands')}
+          <p className="text-sm font-medium text-gray-500">
+            Join SomSkool and start learning today.
           </p>
         </div>
 
-        {/* Footer info */}
-        <p className="text-white/50 text-xs font-semibold relative z-10">
-          © 2026 SomSkool · Hargeisa, Somaliland 🇸🇴
-        </p>
-
-        {/* Decorative Grid */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.05),transparent)]" />
-      </div>
-
-      {/* ✍️ RIGHT PANEL - Register inputs form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md space-y-8 text-left">
-          {/* Header Mobile Brand details */}
-          <div className="space-y-3">
-            <Link href="/" className="flex lg:hidden items-center gap-3 w-fit">
-              <SomSkoolLogo size={40} className="rounded-xl" />
-              <span className="font-display text-xl font-bold tracking-tight text-brand-dark">SOMSKOOL</span>
-            </Link>
-            <h2 className="font-display text-3xl font-extrabold text-brand-dark">
-              {t('create_account')}
-            </h2>
-            <p className="text-gray-400 text-sm font-semibold">
-              {t('register_prompt')}
-            </p>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Full Name field */}
+        {/* Card */}
+        <div className="rounded-2xl bg-white p-7 shadow-[0_6px_30px_rgba(26,26,46,0.07)] sm:p-8">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Full Name */}
             <div className="space-y-1.5">
-              <Label htmlFor="full_name" className="text-xs font-bold text-gray-500 uppercase">{t('full_name')}</Label>
+              <Label htmlFor="full_name" className="text-[13px] font-bold text-brand-dark">
+                Full Name
+              </Label>
               <Input
                 id="full_name"
                 name="full_name"
                 type="text"
                 required
-                placeholder={t('name_placeholder')}
-                className="bg-white border-gray-200 text-brand-dark font-medium rounded-xl focus-visible:ring-brand-primary"
+                placeholder="Your full name"
+                className={fieldClass}
               />
             </div>
 
-            {/* Email or Phone field */}
+            {/* Email */}
             <div className="space-y-1.5">
-              <Label htmlFor="emailOrPhone" className="text-xs font-bold text-gray-500 uppercase">{t('email_or_phone_label')}</Label>
+              <Label htmlFor="emailOrPhone" className="text-[13px] font-bold text-brand-dark">
+                Email Address
+              </Label>
               <Input
                 id="emailOrPhone"
                 name="emailOrPhone"
                 type="text"
                 required
-                placeholder={t('email_or_phone_placeholder')}
-                className="bg-white border-gray-200 text-brand-dark font-medium rounded-xl focus-visible:ring-brand-primary"
+                placeholder="name@example.com"
+                className={fieldClass}
               />
             </div>
 
-            {/* Hidden Role field */}
+            {/* Role is always student for public sign-ups */}
             <input type="hidden" name="role" value="student" />
 
             {/* Password */}
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-xs font-bold text-gray-500 uppercase">{t('password')}</Label>
+              <Label htmlFor="password" className="text-[13px] font-bold text-brand-dark">
+                Password
+              </Label>
               <div className="relative">
                 <Input
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder={t('password_placeholder')}
-                  className="bg-white border-gray-200 text-brand-dark pr-10 font-medium rounded-xl focus-visible:ring-brand-primary"
+                  placeholder="••••••••"
+                  className={`${fieldClass} pr-10`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-3 top-3.5 text-gray-400 hover:text-brand-primary"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-brand-primary"
                 >
-                  {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
             {/* Confirm Password */}
             <div className="space-y-1.5">
-              <Label htmlFor="confirm_password" className="text-xs font-bold text-gray-500 uppercase">{t('confirm_password')}</Label>
+              <Label htmlFor="confirm_password" className="text-[13px] font-bold text-brand-dark">
+                Confirm Password
+              </Label>
               <Input
                 id="confirm_password"
                 name="confirm_password"
                 type={showPassword ? 'text' : 'password'}
                 required
-                placeholder={t('confirm_password_placeholder')}
-                className="bg-white border-gray-200 text-brand-dark font-medium rounded-xl focus-visible:ring-brand-primary"
+                placeholder="••••••••"
+                className={fieldClass}
               />
             </div>
 
-            {/* Error notifications */}
+            {/* Error */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-3 flex items-start gap-2.5 text-xs font-medium leading-relaxed">
-                <AlertCircle className="h-4.5 w-4.5 flex-shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-medium leading-relaxed text-red-600">
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            {/* Terms clause */}
-            <p className="text-[10px] text-gray-400 font-semibold leading-relaxed">
-              Markaad samaysato koonto, waxaad ogolaatay in SomSkool ay ku habayn karto waxbarashadaada xeerarka Shuruucda iyo Terms of Service.
+            {/* Terms */}
+            <p className="text-[11px] font-medium leading-relaxed text-gray-400">
+              By creating an account, you agree to SomSkool&apos;s Terms of Service and Privacy Policy.
             </p>
 
-            {/* Submit Action */}
+            {/* Submit */}
             <Button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-bold py-6 text-base gap-2 shadow-lg shadow-brand-primary/15 transition-all cursor-pointer"
+              className="h-11 w-full gap-2 rounded-lg bg-brand-primary text-sm font-bold text-white shadow-md shadow-brand-primary/20 transition-all hover:bg-brand-primary-dark cursor-pointer"
             >
-              {loading && <Loader2 className="h-5 w-5 animate-spin" />}
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               Register
             </Button>
           </form>
 
-          {/* Login Option */}
-          <div className="text-center pt-2 text-sm text-gray-500 font-semibold">
-            {t('already_registered')}{' '}
-            <Link href="/login" className="text-brand-primary hover:underline font-bold">
-              {t('login_now')}
+          {/* Social sign-up */}
+          <SocialAuthButtons label="Or sign up with" onError={setError} />
+
+          {/* Login link */}
+          <p className="mt-5 text-center text-sm font-medium text-gray-500">
+            Already have an account?{' '}
+            <Link href="/login" className="font-bold text-brand-primary hover:underline">
+              Login
             </Link>
-          </div>
+          </p>
         </div>
       </div>
-    </div>
-  )
-}
-
-// Inline badge for the left layout panel
-function Badge({ className, children }: { className?: string; children: React.ReactNode }) {
-  return (
-    <div className={`inline-flex items-center justify-center font-semibold rounded-full border px-3 py-1 text-xs ${className}`}>
-      {children}
     </div>
   )
 }
