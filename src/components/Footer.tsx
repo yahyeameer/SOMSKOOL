@@ -78,7 +78,8 @@ export default function Footer({ settings }: { settings?: any }) {
               </span>
             </Link>
             <p className="text-white/80 text-sm leading-relaxed">
-              Waxaan u taaganahay inaan bulshada Soomaaliyeed u soo gudbino casharo tayo sare leh oo ku baxaya luuqadooda hooyo, si ay u dhistaan mustaqbal ifaya.
+              We are committed to bringing the Somali community high-quality courses in their
+              own language, so they can build a brighter future.
             </p>
             <div className="flex items-center gap-4">
               <a href={settings?.social_facebook || "https://facebook.com/somskool"} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="h-10 w-10 rounded-full bg-white/10 hover:bg-brand-primary flex items-center justify-center transition-colors text-white">
@@ -99,7 +100,7 @@ export default function Footer({ settings }: { settings?: any }) {
           {/* Column 2: Quick Links */}
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6 font-display">
-              Xiriirada Degdega ah
+              Quick Links
             </h3>
             <ul className="space-y-4">
               {['About Us', 'All Courses', 'Contact support'].map((link) => (
@@ -115,7 +116,7 @@ export default function Footer({ settings }: { settings?: any }) {
           {/* Column 3: Top Categories */}
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6 font-display">
-              Qeybaha ugu caansan
+              Top Categories
             </h3>
             <ul className="space-y-4">
               {[
@@ -137,20 +138,20 @@ export default function Footer({ settings }: { settings?: any }) {
           {/* Column 4: Newsletter */}
           <div className="space-y-6">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-white mb-6 font-display">
-              Wargeyskayaga
+              Newsletter
             </h3>
             <p className="text-white/85 text-sm leading-relaxed">
-              Ku biir wargeyskayaga si aad u hesho ogeysiisyada koorsooyinka cusub iyo qiimo dhimista.
+              Subscribe to get the latest updates on new courses and special offers.
             </p>
             {subscribed ? (
               <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-xl p-4 text-emerald-400 text-sm">
-                Waad ku mahadsantahay ku biiristaada!
+                Thank you for subscribing!
               </div>
             ) : (
               <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
                 <Input
                   type="email"
-                  placeholder="Geli iimaylkaaga"
+                  placeholder="Your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -167,7 +168,7 @@ export default function Footer({ settings }: { settings?: any }) {
 
         {/* Bottom Bar */}
         <div className="mt-16 pt-8 border-t border-white/20 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/85 font-medium">
-          <p>© {new Date().getFullYear()} SomSkool. Xuquuqda oo dhan waa dhowran tahay.</p>
+          <p>© {new Date().getFullYear()} SomSkool. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link href="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</Link>
