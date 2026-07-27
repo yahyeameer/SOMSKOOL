@@ -129,7 +129,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
   const handlePaymentAction = async (paymentId: string, status: 'confirmed' | 'failed') => {
     let rejectReason: string | undefined = undefined;
     if (status === 'failed') {
-      const reason = window.prompt("Fadlan qor sababta aad u diidayso lacagtan (tusaale: 'Lacagtii ima soo gaarin'):");
+      const reason = window.prompt("Please enter the reason for rejecting this payment (e.g. 'Payment was not received'):");
       if (reason === null) return; // User cancelled the prompt
       rejectReason = reason.trim();
     }
@@ -150,7 +150,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
     setDocMessage(null)
 
     if (!docTitle || !docUrl) {
-      setDocMessage({ type: 'error', text: 'Fadlan ku qor magaca dokumentiga iyo URL-kiisa.' })
+      setDocMessage({ type: 'error', text: 'Please enter the document name and its URL.' })
       return
     }
 
@@ -168,7 +168,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       })
 
       if (res.success) {
-        setDocMessage({ type: 'success', text: 'Dukumentiga waa la galiyey si guul ah!' })
+        setDocMessage({ type: 'success', text: 'Document uploaded successfully!' })
         // Append to local state list for instant responsiveness
         const matchedCourse = courses.find(c => c.id === docCourse)
         setDocuments(prev => [
@@ -197,7 +197,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
     setVideoMessage(null)
 
     if (!youtubeId || !channelName) {
-      setVideoMessage({ type: 'error', text: 'Muuqaalka YouTube ID iyo magaca kanaalka waa muhiim.' })
+      setVideoMessage({ type: 'error', text: 'YouTube video ID and channel name are required.' })
       return
     }
 
@@ -211,7 +211,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       })
 
       if (res.success) {
-        setVideoMessage({ type: 'success', text: 'Habeynta kanaalka YouTube-ka si guul ah ayaa loo keydiyey!' })
+        setVideoMessage({ type: 'success', text: 'YouTube channel settings saved successfully!' })
       } else {
         setVideoMessage({ type: 'error', text: res.error || 'Khalad ayaa dhacay.' })
       }
@@ -224,7 +224,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
     setStaffMessage(null)
 
     if (!staffName || !staffEmail || !staffPassword) {
-      setStaffMessage({ type: 'error', text: 'Fadlan buuxi dhamaan xogta macalinka/maamulaha.' })
+      setStaffMessage({ type: 'error', text: 'Please fill in all teacher/admin details.' })
       return
     }
 
@@ -238,7 +238,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       })
 
       if (res.success) {
-        setStaffMessage({ type: 'success', text: `Akoonka cusub waa la sameeyay si guul ah!` })
+        setStaffMessage({ type: 'success', text: `New account created successfully!` })
         setStaffList(prev => [
           {
             id: 'temp-' + Math.random(),
@@ -260,14 +260,14 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
   // Tab 4 Action: Regenerate Password
   const handleRegeneratePassword = async (userId: string, userName: string) => {
-    if (!confirm(`Ma hubtaa inaad dib u sameyso password-ka cusub ee: ${userName}?`)) return
+    if (!confirm(`Are you sure you want to reset the password for: ${userName}?`)) return
     
     startTransition(async () => {
       const { regenerateStaffPassword } = await import('@/lib/actions/admin')
       const res = await regenerateStaffPassword(userId)
       
       if (res.success && res.newPassword) {
-        setRegeneratedPassword(`Password-ka cusub ee ${userName} waa:\n\n${res.newPassword}\n\nFadlan koobiyee oo sii.`);
+        setRegeneratedPassword(`The new password for ${userName} is:\n\n${res.newPassword}\n\nPlease copy and share it.`);
       } else {
         alert(res.error || 'Khalad ayaa dhacay.')
       }
@@ -280,7 +280,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
     setRoleMessage(null)
 
     if (!roleName.trim()) {
-      setRoleMessage({ type: 'error', text: 'Fadlan ku qor magaca doorka.' })
+      setRoleMessage({ type: 'error', text: 'Please enter the role name.' })
       return
     }
 
@@ -289,7 +289,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       const res = await createRole(roleName.trim().toLowerCase())
 
       if (res.success) {
-        setRoleMessage({ type: 'success', text: `Door cusub waa la diiwaangaliyey!` })
+        setRoleMessage({ type: 'success', text: `New role registered!` })
         setRolesList(prev => [...prev, { id: 'temp-' + Math.random(), name: roleName.trim().toLowerCase(), created_at: new Date().toISOString() }])
         setRoleName('')
       } else {
@@ -299,7 +299,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
   }
 
   const handleRoleDelete = async (roleId: string, roleN: string) => {
-    if (!confirm(`Ma hubtaa inaad tirtirto doorka "${roleN}"?`)) return
+    if (!confirm(`Are you sure you want to delete the role "${roleN}"?`)) return
     
     startTransition(async () => {
       const { deleteRole } = await import('@/lib/actions/admin')
@@ -319,7 +319,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
     setModuleMessage(null)
 
     if (!moduleTitle || !moduleYoutubeId) {
-      setModuleMessage({ type: 'error', text: 'Fadlan buuxi dhamaan xogta module-ka.' })
+      setModuleMessage({ type: 'error', text: 'Please fill in all module details.' })
       return
     }
 
@@ -334,7 +334,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       })
 
       if (res.success) {
-        setModuleMessage({ type: 'success', text: `Module cusub waa la diiwaangaliyey!` })
+        setModuleMessage({ type: 'success', text: `New module registered!` })
         setVideoList(prev => [...prev, {
           id: 'temp-' + Math.random(),
           course_id: moduleCourse,
@@ -353,7 +353,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
   }
 
   const handleModuleDelete = async (id: string) => {
-    if (!confirm('Ma hubtaa inaad tirtirto video-gan?')) return
+    if (!confirm('Are you sure you want to delete this video?')) return
     startTransition(async () => {
       const res = await deleteCourseVideo(id)
       if (res.success) {
@@ -384,7 +384,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
     setCourseMessage(null)
 
     if (!courseTitle || !courseSlug) {
-      setCourseMessage({ type: 'error', text: 'Fadlan buuxi magaca iyo slug-ga.' })
+      setCourseMessage({ type: 'error', text: 'Please fill in the title and slug.' })
       return
     }
 
@@ -397,7 +397,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       })
 
       if (res.success) {
-        setCourseMessage({ type: 'success', text: 'Koorsada waa la abuuray si guul ah!' })
+        setCourseMessage({ type: 'success', text: 'Course created successfully!' })
         // Optimistic UI update
         setCourses(prev => [...prev, {
           id: 'temp-' + Math.random(),
@@ -425,7 +425,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
   }
 
   const handleCourseDelete = async (id: string) => {
-    if (!confirm('Ma hubtaa inaad tirtirto koorsadan?')) return
+    if (!confirm('Are you sure you want to delete this course?')) return
     startTransition(async () => {
       const { deleteCourse } = await import('@/lib/actions/admin')
       const res = await deleteCourse(id)
@@ -475,7 +475,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       })
 
       if (res.success) {
-        setPageMessage({ type: 'success', text: 'Xogta boggaga si guul ah ayaa loo keydiyey!' })
+        setPageMessage({ type: 'success', text: 'Page content saved successfully!' })
       } else {
         setPageMessage({ type: 'error', text: res.error || 'Khalad ayaa dhacay' })
       }
@@ -496,7 +496,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           }`}
         >
           <CreditCard className="h-5 w-5" />
-          <span>{t('payments')}</span>
+          <span>Payments</span>
           {payments.filter(p => p.status === 'pending').length > 0 && (
             <span className="ml-auto bg-brand-accent text-brand-dark rounded-full px-2 py-0.5 text-xs font-bold">
               {payments.filter(p => p.status === 'pending').length}
@@ -513,7 +513,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           }`}
         >
           <FileText className="h-5 w-5" />
-          <span>{t('documents')}</span>
+          <span>Documents</span>
         </button>
 
         <button
@@ -549,7 +549,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           }`}
         >
           <Users className="h-5 w-5" />
-          <span>{t('staff')}</span>
+          <span>Staff</span>
         </button>
 
         <button
@@ -561,7 +561,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           }`}
         >
           <ShieldCheck className="h-5 w-5" />
-          <span>Maamulka Doorarka</span>
+          <span>Roles Management</span>
         </button>
 
         <button
@@ -573,7 +573,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           }`}
         >
           <Users className="h-5 w-5" />
-          <span>Ardayda</span>
+          <span>Students</span>
         </button>
 
         <button
@@ -614,14 +614,14 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         {activeTab === 'payments' && (
           <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden text-left">
             <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-              <CardTitle className="font-display text-xl font-bold text-brand-dark">{t('payments')}</CardTitle>
-              <CardDescription className="text-gray-400 font-medium">Ku maamul halkan rasiidhada lacag-bixinta, una fasax casharada ardayda ansaxday.</CardDescription>
+              <CardTitle className="font-display text-xl font-bold text-brand-dark">Payments</CardTitle>
+              <CardDescription className="text-gray-400 font-medium">Manage payment receipts here and grant course access to approved students.</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               {payments.length === 0 ? (
                 <div className="py-16 text-center space-y-3">
                   <CreditCard className="h-12 w-12 text-gray-300 mx-auto" />
-                  <p className="text-gray-400 text-sm font-semibold">Wax lacag-bixin ah oo la gudbiyey wali lama helin.</p>
+                  <p className="text-gray-400 text-sm font-semibold">No payment submissions received yet.</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -644,7 +644,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                             <td className="py-4 px-3 space-y-0.5">
                               <p className="font-extrabold text-brand-dark">{p.full_name}</p>
                               <p className="text-xs text-gray-400 font-bold truncate max-w-[200px]" title={matchedCourse?.title || 'Unknown Course'}>
-                                {matchedCourse?.title || 'Koorsada SomSkool'}
+                                {matchedCourse?.title || 'SomSkool Course'}
                               </p>
                             </td>
                             <td className="py-4 px-3 space-y-0.5 text-xs">
@@ -666,7 +666,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                                 </span>
                               ) : p.status === 'failed' ? (
                                 <span className="bg-red-50 text-red-500 px-3 py-1 rounded-full text-xs font-extrabold border border-red-100 inline-flex items-center gap-1">
-                                  <XCircle className="h-3 w-3" /> Diiday
+                                  <XCircle className="h-3 w-3" /> Rejected
                                 </span>
                               ) : (
                                 <span className="bg-amber-50 text-amber-600 px-3 py-1 rounded-full text-xs font-extrabold border border-amber-100 inline-flex items-center gap-1 animate-pulse">
@@ -691,7 +691,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                                   </button>
                                 </div>
                               ) : (
-                                <span className="text-xs text-gray-400 font-bold">Xaqiijiyey</span>
+                                <span className="text-xs text-gray-400 font-bold">Confirmed</span>
                               )}
                             </td>
                           </tr>
@@ -711,8 +711,8 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
             {/* Upload form card */}
             <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
               <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-                <CardTitle className="font-display text-xl font-bold text-brand-dark">Geli Dukumenti Cusub (Upload Resource)</CardTitle>
-                <CardDescription className="text-gray-400 font-medium">U kordhi casharada ardayda lifaaqyo kala duwan sida PDF Syllabus ama slide code-ka koorsada.</CardDescription>
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Upload New Document (Upload Resource)</CardTitle>
+                <CardDescription className="text-gray-400 font-medium">Add supporting materials to lessons, such as a PDF syllabus or course slides.</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 <form onSubmit={handleDocSubmit} className="space-y-5">
@@ -727,7 +727,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="title" className="text-xs font-bold text-gray-500 uppercase">Magaca Dokumentiga</Label>
+                      <Label htmlFor="title" className="text-xs font-bold text-gray-500 uppercase">Document Name</Label>
                       <Input
                         id="title"
                         type="text"
@@ -739,7 +739,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="course" className="text-xs font-bold text-gray-500 uppercase">Dooro Koorsada</Label>
+                      <Label htmlFor="course" className="text-xs font-bold text-gray-500 uppercase">Select Course</Label>
                       <select
                         id="course"
                         value={docCourse}
@@ -755,7 +755,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="type" className="text-xs font-bold text-gray-500 uppercase">Nooca Faylka (File Type)</Label>
+                      <Label htmlFor="type" className="text-xs font-bold text-gray-500 uppercase">File Type</Label>
                       <select
                         id="type"
                         value={docType}
@@ -787,7 +787,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                     className="w-full md:w-auto rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer"
                   >
                     <Plus className="h-5 w-5" />
-                    Geli Dukumentiga
+                    Upload Document
                   </Button>
                 </form>
               </CardContent>
@@ -796,14 +796,14 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
             {/* List of uploaded documents */}
             <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
               <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-                <CardTitle className="font-display text-xl font-bold text-brand-dark">Kaydka Dukumentiyada (Uploaded Materials)</CardTitle>
-                <CardDescription className="text-gray-400 font-medium">Liiska dhamaan dukumentiyada aad horey ugu soo dartay barmaamijka.</CardDescription>
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Uploaded Materials</CardTitle>
+                <CardDescription className="text-gray-400 font-medium">A list of all documents you have added to the platform.</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 {documents.length === 0 ? (
                   <div className="py-12 text-center space-y-2">
                     <FileCheck className="h-11 w-11 text-gray-300 mx-auto" />
-                    <p className="text-gray-400 text-sm font-semibold">Wali ma jiro wax dukumenti ah oo lagu daray.</p>
+                    <p className="text-gray-400 text-sm font-semibold">No documents have been added yet.</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -846,7 +846,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         {activeTab === 'video' && (
           <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden text-left">
             <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-              <CardTitle className="font-display text-xl font-bold text-brand-dark">Habaynta Kanaalka YouTube (Promotional Video settings)</CardTitle>
+              <CardTitle className="font-display text-xl font-bold text-brand-dark">YouTube Channel Settings (Promotional Video)</CardTitle>
               <CardDescription className="text-gray-400 font-medium">Habeey muuqaalka soo jiidashada ah ee lagu soo bandhigayo homepage-ka iyo macluumaadka kanaalkaaga YouTube.</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
@@ -875,7 +875,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                   </div>
                   
                   <div className="space-y-1.5 md:col-span-1">
-                    <Label htmlFor="chanName" className="text-xs font-bold text-gray-500 uppercase">Magaca Kanaalka YouTube-ka</Label>
+                    <Label htmlFor="chanName" className="text-xs font-bold text-gray-500 uppercase">YouTube Channel Name</Label>
                     <Input
                       id="chanName"
                       type="text"
@@ -888,7 +888,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                   </div>
 
                   <div className="space-y-1.5 md:col-span-1">
-                    <Label htmlFor="chanUrl" className="text-xs font-bold text-gray-500 uppercase">URL Kanaalka YouTube-ka</Label>
+                    <Label htmlFor="chanUrl" className="text-xs font-bold text-gray-500 uppercase">YouTube Channel URL</Label>
                     <Input
                       id="chanUrl"
                       type="url"
@@ -937,7 +937,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                 <div className="bg-brand-primary/[0.02] border border-brand-primary/10 rounded-xl p-4 space-y-2">
                   <div className="flex items-center gap-2">
                     <Link2 className="h-4 w-4 text-brand-primary" />
-                    <h4 className="text-xs font-bold text-brand-dark uppercase tracking-wider">Talo bixin faahfaahsan</h4>
+                    <h4 className="text-xs font-bold text-brand-dark uppercase tracking-wider">Detailed tip</h4>
                   </div>
                   <p className="text-[11px] text-gray-500 font-medium leading-relaxed">
                     Si aad u hesho Video ID-ga, u fur muuqaalka aad rabto YouTube-ka, ka koobiyeey 11-ka xaraf ee ku jira URL-ka kadib xariiqda <code className="bg-gray-100 px-1 py-0.5 font-mono text-brand-primary">v=</code> (e.g. <code className="bg-gray-100 px-1 py-0.5 font-mono">https://youtube.com/watch?v=ScMzIvxBSi4</code> ID-ga waa <code className="bg-gray-100 px-1 py-0.5 font-mono font-bold text-brand-dark">ScMzIvxBSi4</code>).
@@ -949,7 +949,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                   className="rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer"
                 >
                   <Video className="h-5 w-5" />
-                  Keydi Dejinta Muuqaalka
+                  Save Video Settings
                 </Button>
               </form>
             </CardContent>
@@ -961,8 +961,8 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           <div className="space-y-8 text-left">
             <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
               <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-                <CardTitle className="font-display text-xl font-bold text-brand-dark">Abuur Akoon Cusub (Add Staff)</CardTitle>
-                <CardDescription className="text-gray-400 font-medium">U samee password macalimiinta iyo maamulayaasha cusub si ay si toos ah ugu soo galaan.</CardDescription>
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Create New Account (Add Staff)</CardTitle>
+                <CardDescription className="text-gray-400 font-medium">Create passwords for new teachers and admins so they can sign in directly.</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 <form onSubmit={handleStaffSubmit} className="space-y-5">
@@ -977,7 +977,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="staffName" className="text-xs font-bold text-gray-500 uppercase">Magaca Buuxa</Label>
+                      <Label htmlFor="staffName" className="text-xs font-bold text-gray-500 uppercase">Full Name</Label>
                       <Input
                         id="staffName"
                         type="text"
@@ -1004,11 +1004,11 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="staffPassword" className="text-xs font-bold text-gray-500 uppercase">Password Cusub</Label>
+                      <Label htmlFor="staffPassword" className="text-xs font-bold text-gray-500 uppercase">New Password</Label>
                       <Input
                         id="staffPassword"
                         type="password"
-                        placeholder="Buuxi password-ka sirta ah"
+                        placeholder="Enter a secure password"
                         value={staffPassword}
                         onChange={(e) => setStaffPassword(e.target.value)}
                         className="rounded-xl border-gray-200"
@@ -1048,14 +1048,14 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
             <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
               <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-                <CardTitle className="font-display text-xl font-bold text-brand-dark">Liiska Shaqaalaha (Staff List)</CardTitle>
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Staff List</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 {regeneratedPassword && (
                   <div className="mb-6 bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex items-start gap-3 shadow-sm">
                     <CheckCircle2 className="h-5 w-5 text-emerald-600 mt-0.5 shrink-0" />
                     <div>
-                      <h4 className="text-sm font-bold text-emerald-900">Password-ka waa la cusbooneysiiyey</h4>
+                      <h4 className="text-sm font-bold text-emerald-900">Password has been reset</h4>
                       <pre className="mt-2 bg-white/60 p-3 rounded-lg text-sm text-emerald-800 font-mono font-bold whitespace-pre-wrap">{regeneratedPassword}</pre>
                     </div>
                   </div>
@@ -1063,17 +1063,17 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                 {staffList.length === 0 ? (
                   <div className="py-12 text-center space-y-2">
                     <Users className="h-11 w-11 text-gray-300 mx-auto" />
-                    <p className="text-gray-400 text-sm font-semibold">Wali ma jiraan shaqaale diiwaangashan.</p>
+                    <p className="text-gray-400 text-sm font-semibold">No staff members registered yet.</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
                       <thead>
                         <tr className="border-b border-gray-100 text-gray-500 text-xs font-bold uppercase tracking-wider">
-                          <th className="py-3.5 px-3">Magaca</th>
+                          <th className="py-3.5 px-3">Name</th>
                           <th className="py-3.5 px-3">Email</th>
                           <th className="py-3.5 px-3">Nooca</th>
-                          <th className="py-3.5 px-3 text-right">Taariikhda</th>
+                          <th className="py-3.5 px-3 text-right">Date</th>
                           <th className="py-3.5 px-3 text-right">Action</th>
                         </tr>
                       </thead>
@@ -1121,8 +1121,8 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           <div className="space-y-8 text-left">
             <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
               <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-                <CardTitle className="font-display text-xl font-bold text-brand-dark">Geli Video Cusub (Add Course Module)</CardTitle>
-                <CardDescription className="text-gray-400 font-medium">Kudar casharo muuqaal ah (YouTube URLs) oo u qaas ah koorsooyinka, ardaydana ha ula socdaan horumarkooda.</CardDescription>
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Add New Video (Add Course Module)</CardTitle>
+                <CardDescription className="text-gray-400 font-medium">Add video lessons (YouTube URLs) to specific courses and let students track their progress.</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 <form onSubmit={handleModuleSubmit} className="space-y-5">
@@ -1137,7 +1137,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="moduleCourse" className="text-xs font-bold text-gray-500 uppercase">Dooro Koorsada</Label>
+                      <Label htmlFor="moduleCourse" className="text-xs font-bold text-gray-500 uppercase">Select Course</Label>
                       <select
                         id="moduleCourse"
                         value={moduleCourse}
@@ -1150,7 +1150,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                       </select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="moduleTitle" className="text-xs font-bold text-gray-500 uppercase">Magaca Casharka (Title)</Label>
+                      <Label htmlFor="moduleTitle" className="text-xs font-bold text-gray-500 uppercase">Lesson Title</Label>
                       <Input
                         id="moduleTitle"
                         type="text"
@@ -1177,7 +1177,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="modulePoints" className="text-xs font-bold text-gray-500 uppercase">Dhibcaha Casharka (Points)</Label>
+                      <Label htmlFor="modulePoints" className="text-xs font-bold text-gray-500 uppercase">Lesson Points</Label>
                       <Input
                         id="modulePoints"
                         type="number"
@@ -1195,7 +1195,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                     className="w-full md:w-auto rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer"
                   >
                     <Plus className="h-5 w-5" />
-                    Ku Dar Casharka
+                    Add Lesson
                   </Button>
                 </form>
               </CardContent>
@@ -1203,20 +1203,20 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
             <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
               <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-                <CardTitle className="font-display text-xl font-bold text-brand-dark">Liiska Casharada (Course Modules)</CardTitle>
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Course Modules</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 {videoList.length === 0 ? (
                   <div className="py-12 text-center space-y-2">
                     <PlayCircle className="h-11 w-11 text-gray-300 mx-auto" />
-                    <p className="text-gray-400 text-sm font-semibold">Wali ma jiraan casharo diiwaangashan.</p>
+                    <p className="text-gray-400 text-sm font-semibold">No lessons registered yet.</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
                       <thead>
                         <tr className="border-b border-gray-100 text-gray-500 text-xs font-bold uppercase tracking-wider">
-                          <th className="py-3.5 px-3">Koorsada</th>
+                          <th className="py-3.5 px-3">Course</th>
                           <th className="py-3.5 px-3">Title</th>
                           <th className="py-3.5 px-3 text-center">Points</th>
                           <th className="py-3.5 px-3 text-right">Actions</th>
@@ -1242,14 +1242,14 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                                   <button
                                     onClick={() => setPreviewVideoId(v.youtube_id)}
                                     className="text-brand-primary hover:text-brand-primary-dark bg-brand-primary/10 hover:bg-brand-primary/20 p-2 rounded-lg transition-colors inline-flex"
-                                    title="Daawo Muuqaalka"
+                                    title="Watch video"
                                   >
                                     <Eye className="h-4 w-4" />
                                   </button>
                                   <button
                                     onClick={() => handleModuleDelete(v.id)}
                                     className="text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors inline-flex"
-                                    title="Tirtir Casharka"
+                                    title="Delete lesson"
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </button>
@@ -1272,23 +1272,23 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           <div className="space-y-8 text-left">
             <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
               <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-                <CardTitle className="font-display text-xl font-bold text-brand-dark">Ardayda (Students)</CardTitle>
-                <CardDescription className="text-gray-400 font-medium">Maamul ardayda oo wax ka bedel dhibcaha ay leeyihiin.</CardDescription>
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Students</CardTitle>
+                <CardDescription className="text-gray-400 font-medium">Manage students and edit their points.</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 {students.length === 0 ? (
                   <div className="py-12 text-center space-y-2">
                     <Users className="h-11 w-11 text-gray-300 mx-auto" />
-                    <p className="text-gray-400 text-sm font-semibold">Wali ma jiraan arday diiwaangashan.</p>
+                    <p className="text-gray-400 text-sm font-semibold">No students registered yet.</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
                       <thead>
                         <tr className="border-b border-gray-100 text-gray-500 text-xs font-bold uppercase tracking-wider">
-                          <th className="py-3.5 px-3">Magaca</th>
+                          <th className="py-3.5 px-3">Name</th>
                           <th className="py-3.5 px-3">Email</th>
-                          <th className="py-3.5 px-3">Dhibcaha (Points)</th>
+                          <th className="py-3.5 px-3">Points</th>
                           <th className="py-3.5 px-3 text-right">Actions</th>
                         </tr>
                       </thead>
@@ -1316,7 +1316,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                             <td className="py-4 px-3 text-right">
                               {editingStudentId === s.id ? (
                                 <div className="flex items-center justify-end gap-2">
-                                  <Button size="sm" onClick={() => handleUpdatePoints(s.id)} className="h-8">Keydi</Button>
+                                  <Button size="sm" onClick={() => handleUpdatePoints(s.id)} className="h-8">Save</Button>
                                   <Button size="sm" variant="ghost" onClick={() => setEditingStudentId(null)} className="h-8">Kanoqo</Button>
                                 </div>
                               ) : (
@@ -1324,7 +1324,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                                   setEditingStudentId(s.id)
                                   setEditingPoints(s.points || 0)
                                 }} className="h-8">
-                                  Wax ka bedel
+                                  Edit
                                 </Button>
                               )}
                             </td>
@@ -1344,7 +1344,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           <div className="space-y-8 text-left">
             <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
               <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-                <CardTitle className="font-display text-xl font-bold text-brand-dark">Abuur Koorso Cusub</CardTitle>
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Create New Course</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <form onSubmit={handleCourseSubmit} className="space-y-5">
@@ -1359,7 +1359,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="cTitle" className="text-xs font-bold text-gray-500 uppercase">Magaca Koorsada</Label>
+                      <Label htmlFor="cTitle" className="text-xs font-bold text-gray-500 uppercase">Course Title</Label>
                       <Input
                         id="cTitle"
                         type="text"
@@ -1402,7 +1402,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                     className="w-full md:w-auto rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer"
                   >
                     <Plus className="h-5 w-5" />
-                    Samee Koorsada
+                    Samee Course
                   </Button>
                 </form>
               </CardContent>
@@ -1410,13 +1410,13 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
             <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
               <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-                <CardTitle className="font-display text-xl font-bold text-brand-dark">Koorsooyinka Hada Jira</CardTitle>
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Existing Courses</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 {courses.length === 0 ? (
                   <div className="py-12 text-center space-y-2">
                     <FileCheck className="h-11 w-11 text-gray-300 mx-auto" />
-                    <p className="text-gray-400 text-sm font-semibold">Wali ma jiraan koorsooyin.</p>
+                    <p className="text-gray-400 text-sm font-semibold">No courses yet.</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
@@ -1471,7 +1471,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           <div className="space-y-6 text-left">
             <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden text-left">
               <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-                <CardTitle className="font-display text-xl font-bold text-brand-dark">Maamul Boggaga About & Contact</CardTitle>
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Manage About & Contact Pages</CardTitle>
                 <CardDescription className="text-gray-400 font-medium">Habeey qoraalada, sawirada, iyo numberka boggaga (About Us iyo Contact Us).</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
@@ -1589,7 +1589,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                     className="rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer"
                   >
                     <LayoutTemplate className="h-5 w-5" />
-                    Keydi Boggaga
+                    Save Pages
                   </Button>
                 </form>
               </CardContent>
@@ -1602,8 +1602,8 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           <div className="space-y-8 text-left">
             <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
               <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-                <CardTitle className="font-display text-xl font-bold text-brand-dark">Abuur Door Cusub (Add Role)</CardTitle>
-                <CardDescription className="text-gray-400 font-medium">U samee doorar cusub shaqaalaha (tusaale: moderator, editor).</CardDescription>
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Create New Role (Add Role)</CardTitle>
+                <CardDescription className="text-gray-400 font-medium">Create new staff roles (e.g. moderator, editor).</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 <form onSubmit={handleRoleSubmit} className="space-y-5">
@@ -1617,7 +1617,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                   )}
 
                   <div className="space-y-1.5 max-w-sm">
-                    <Label htmlFor="roleName" className="text-xs font-bold text-gray-500 uppercase">Magaca Doorka</Label>
+                    <Label htmlFor="roleName" className="text-xs font-bold text-gray-500 uppercase">Role Name</Label>
                     <Input
                       id="roleName"
                       type="text"
@@ -1634,7 +1634,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                     className="rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer"
                   >
                     <ShieldCheck className="h-5 w-5" />
-                    Samee Doorka
+                    Create Role
                   </Button>
                 </form>
               </CardContent>
@@ -1642,13 +1642,13 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
             <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden">
               <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-                <CardTitle className="font-display text-xl font-bold text-brand-dark">Liiska Doorarka (Roles List)</CardTitle>
+                <CardTitle className="font-display text-xl font-bold text-brand-dark">Roles List</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 {rolesList.length === 0 ? (
                   <div className="py-12 text-center space-y-2">
                     <ShieldCheck className="h-11 w-11 text-gray-300 mx-auto" />
-                    <p className="text-gray-400 text-sm font-semibold">Wali ma jiraan doorar.</p>
+                    <p className="text-gray-400 text-sm font-semibold">No roles yet.</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

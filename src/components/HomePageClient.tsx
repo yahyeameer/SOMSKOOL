@@ -51,27 +51,6 @@ function useScrollReveal(threshold = 0.15) {
   return ref
 }
 
-/** Animated counter from 0 → target */
-function useCountUp(target: number, duration = 2000, trigger = false): number {
-  const [value, setValue] = useState(0)
-  useEffect(() => {
-    if (!trigger) return
-    let start = 0
-    const startTime = performance.now()
-    const step = (currentTime: number) => {
-      const elapsed = currentTime - startTime
-      const progress = Math.min(elapsed / duration, 1)
-      // Ease-out cubic
-      const eased = 1 - Math.pow(1 - progress, 3)
-      const current = Math.floor(eased * target)
-      setValue(current)
-      if (progress < 1) requestAnimationFrame(step)
-    }
-    requestAnimationFrame(step)
-  }, [target, duration, trigger])
-  return value
-}
-
 /** Parallax scroll offset */
 function useParallax(speed = 0.3) {
   const ref = useRef<HTMLDivElement>(null)
@@ -136,42 +115,6 @@ function useTilt3D(maxDeg = 6) {
   return { handleMouseMove, handleMouseLeave }
 }
 
-// ─── Stat Counter Component ──────────────────────────────────
-
-function AnimatedStat({
-  icon: Icon,
-  target,
-  suffix,
-  label,
-  trigger,
-  delay,
-}: {
-  icon: React.ElementType
-  target: number
-  suffix: string
-  label: string
-  trigger: boolean
-  delay: number
-}) {
-  const count = useCountUp(target, 2000, trigger)
-  return (
-    <div
-      className="scroll-hidden flex flex-col items-center gap-2 p-6 group"
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      <div className="h-12 w-12 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center mb-1 group-hover:scale-110 transition-transform duration-300 border border-white/10">
-        <Icon className="h-6 w-6 text-brand-accent" />
-      </div>
-      <span className="text-3xl sm:text-4xl font-extrabold text-white tabular-nums tracking-tight">
-        {count}{suffix}
-      </span>
-      <span className="text-white/60 text-xs sm:text-sm font-semibold uppercase tracking-wider">
-        {label}
-      </span>
-    </div>
-  )
-}
-
 // ─── Main Component ──────────────────────────────────────────
 
 interface HomePageClientProps {
@@ -184,7 +127,6 @@ export default function HomePageClient({ courses }: HomePageClientProps) {
 
   // Scroll reveal refs for each section
   const heroRef = useScrollReveal(0.1)
-  const statsRef = useScrollReveal(0.2)
   const coursesRef = useScrollReveal(0.1)
   const testimonialsRef = useScrollReveal(0.1)
 
@@ -196,25 +138,6 @@ export default function HomePageClient({ courses }: HomePageClientProps) {
 
   // 3D tilt for course cards
   const tilt = useTilt3D(5)
-
-  // Stats counter trigger
-  const [statsVisible, setStatsVisible] = useState(false)
-  const statsObserverRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    const el = statsObserverRef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setStatsVisible(true)
-          observer.disconnect()
-        }
-      },
-      { threshold: 0.3 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
 
   // Hero entrance stagger state
   const [heroLoaded, setHeroLoaded] = useState(false)
@@ -411,50 +334,6 @@ export default function HomePageClient({ courses }: HomePageClientProps) {
         {/* Existing decorative diagonal */}
         <div className="absolute top-0 right-0 w-[50%] h-[100%] bg-gradient-to-l from-white/[0.03] to-transparent pointer-events-none transform skew-x-[-12deg]" />
       </section>
-
-
-      {/* ═══════════════════════════════════════════════════════════
-          📊 STATS BAR — Animated count-up numbers
-         ═══════════════════════════════════════════════════════════ */}
-      <section className="relative w-full bg-brand-dark border-t border-white/5" ref={statsObserverRef}>
-        <div ref={statsRef} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 divide-x divide-white/10">
-            <AnimatedStat
-              icon={Users}
-              target={18}
-              suffix="+"
-              label={t('expert_instructors')}
-              trigger={statsVisible}
-              delay={0}
-            />
-            <AnimatedStat
-              icon={BookOpen}
-              target={75}
-              suffix="+"
-              label={t('premium_courses')}
-              trigger={statsVisible}
-              delay={150}
-            />
-            <AnimatedStat
-              icon={TrendingUp}
-              target={8}
-              suffix="k+"
-              label={t('active_students')}
-              trigger={statsVisible}
-              delay={300}
-            />
-            <AnimatedStat
-              icon={Award}
-              target={4}
-              suffix=".9/5"
-              label={t('average_rating')}
-              trigger={statsVisible}
-              delay={450}
-            />
-          </div>
-        </div>
-      </section>
-
 
 
       {/* ═══════════════════════════════════════════════════════════

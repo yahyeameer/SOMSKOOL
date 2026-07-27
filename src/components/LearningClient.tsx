@@ -151,7 +151,7 @@ export default function LearningClient({
           setTimeout(() => {
             setActiveVideoIndex(activeVideoIndex + 1)
             setMessage(null)
-          }, 1500)
+          }, 600)
         }
       } else {
         setMessage({ type: 'error', text: res.error || 'Cilad ayaa dhacday' })

@@ -3,17 +3,16 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { signIn } from '@/lib/actions/auth'
-import { BookOpen, KeyRound, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useLanguage } from '@/contexts/LanguageContext'
+import SocialAuthButtons from '@/components/SocialAuthButtons'
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { t } = useLanguage()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -30,79 +29,51 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-80px)] w-full font-sans bg-white">
-      {/* 🚀 LEFT PANEL - Decorative Brand Panel (Hidden on Mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-brand-primary p-16 flex-col justify-between relative overflow-hidden text-white text-left">
-        {/* Brand Header */}
-        <div className="flex items-center gap-3 relative z-10">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-brand-primary shadow-md">
-            <BookOpen className="h-6 w-6" />
-          </div>
-          <span className="font-display text-2xl font-bold tracking-tight">SOMSKOOL</span>
-        </div>
+    <div className="relative flex min-h-[calc(100vh-80px)] w-full items-center justify-center overflow-hidden bg-[#FAFAFE] px-4 py-16 font-sans">
+      {/* Soft radial brand glow behind the card */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[560px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-primary/[0.07] blur-[90px]" />
 
-        {/* Brand Focus */}
-        <div className="space-y-6 relative z-10 my-auto">
-          <Badge className="bg-white/10 hover:bg-white/10 text-white border border-white/20 px-4 py-1.5 rounded-full text-xs w-fit">
-            {t('quality_education')}
-          </Badge>
-          <h1 className="font-display text-5xl font-extrabold leading-tight tracking-tight">
-            Learn Without <br />
-            <span className="text-brand-accent">Limits.</span>
+      <div className="relative z-10 w-full max-w-md">
+        {/* Heading */}
+        <div className="mb-8 space-y-2 text-center">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-primary">
+            Welcome Back
+          </p>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-brand-dark sm:text-4xl">
+            Login to Account
           </h1>
-          <p className="text-white/80 text-base leading-relaxed max-w-md">
-            {t('join_thousands')}
+          <p className="text-sm font-medium text-gray-500">
+            Enter your credentials to access your courses.
           </p>
         </div>
 
-        {/* Footer info */}
-        <p className="text-white/50 text-xs font-semibold relative z-10">
-          © 2026 SomSkool · Hargeisa, Somaliland 🇸🇴
-        </p>
-
-        {/* Decorative Grid */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.05),transparent)]" />
-      </div>
-
-      {/* ✍️ RIGHT PANEL - Login credentials input Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md space-y-8 text-left">
-          {/* Header Mobile Brand details */}
-          <div className="space-y-3">
-            <div className="flex lg:hidden items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-primary text-white shadow-md">
-                <BookOpen className="h-5 w-5" />
-              </div>
-              <span className="font-display text-xl font-bold tracking-tight text-brand-dark">SOMSKOOL</span>
-            </div>
-            <h2 className="font-display text-3xl font-extrabold text-brand-dark">
-              {t('welcome_back')}
-            </h2>
-            <p className="text-gray-400 text-sm font-semibold">
-              {t('login_prompt')}
-            </p>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email or Phone field */}
+        {/* Card */}
+        <div className="rounded-2xl bg-white p-7 shadow-[0_6px_30px_rgba(26,26,46,0.07)] sm:p-8">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Email */}
             <div className="space-y-1.5">
-              <Label htmlFor="emailOrPhone" className="text-xs font-bold text-gray-500 uppercase">{t('email_or_phone_label')}</Label>
+              <Label htmlFor="emailOrPhone" className="text-[13px] font-bold text-brand-dark">
+                Email Address
+              </Label>
               <Input
                 id="emailOrPhone"
                 name="emailOrPhone"
                 type="text"
                 required
-                placeholder={t('email_or_phone_placeholder')}
-                className="bg-white border-gray-200 text-brand-dark font-medium rounded-xl focus-visible:ring-brand-primary"
+                placeholder="name@example.com"
+                className="h-11 rounded-lg border-0 bg-[#F4F4F8] px-3.5 text-sm font-medium text-brand-dark placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-brand-primary/40"
               />
             </div>
 
-            {/* Password field */}
+            {/* Password */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-xs font-bold text-gray-500 uppercase">{t('password')}</Label>
-                <Link href="/forgot-password" className="text-xs font-bold text-brand-primary hover:underline">{t('forgot_password')}</Link>
+                <Label htmlFor="password" className="text-[13px] font-bold text-brand-dark">
+                  Password
+                </Label>
+                <Link href="/forgot-password" className="text-xs font-semibold text-brand-primary hover:underline">
+                  Forgot Password?
+                </Link>
               </div>
               <div className="relative">
                 <Input
@@ -110,62 +81,51 @@ export default function LoginPage() {
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder={t('password_placeholder')}
-                  className="bg-white border-gray-200 text-brand-dark pr-10 font-medium rounded-xl focus-visible:ring-brand-primary"
+                  placeholder="••••••••"
+                  className="h-11 rounded-lg border-0 bg-[#F4F4F8] px-3.5 pr-10 text-sm font-medium text-brand-dark placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-brand-primary/40"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3.5 text-gray-400 hover:text-brand-primary"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-brand-primary"
                 >
-                  {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Error notifications */}
+            {/* Error */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-3.5 flex items-start gap-2.5 text-xs font-medium leading-relaxed">
-                <AlertCircle className="h-4.5 w-4.5 flex-shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-medium leading-relaxed text-red-600">
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            {/* Submit Action */}
+            {/* Submit */}
             <Button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-bold py-6 text-base gap-2 shadow-lg shadow-brand-primary/15 transition-all cursor-pointer"
+              className="h-11 w-full gap-2 rounded-lg bg-brand-primary text-sm font-bold text-white shadow-md shadow-brand-primary/20 transition-all hover:bg-brand-primary-dark cursor-pointer"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  {t('logging_in')}
-                </>
-              ) : (
-                t('login_button')
-              )}
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              Login
             </Button>
           </form>
 
-          {/* Registration Option */}
-          <div className="text-center pt-2 text-sm text-gray-500 font-semibold">
-            {t('new_student')}{' '}
-            <Link href="/register" className="text-brand-primary hover:underline font-bold">
-              {t('register_now')}
+          {/* Social login */}
+          <SocialAuthButtons label="Or login with" onError={setError} />
+
+          {/* Sign up */}
+          <p className="mt-5 text-center text-sm font-medium text-gray-500">
+            Don&apos;t have an account?{' '}
+            <Link href="/register" className="font-bold text-brand-primary hover:underline">
+              Sign Up
             </Link>
-          </div>
+          </p>
         </div>
       </div>
-    </div>
-  )
-}
-
-// Inline badge for the left layout panel
-function Badge({ className, children }: { className?: string; children: React.ReactNode }) {
-  return (
-    <div className={`inline-flex items-center justify-center font-semibold rounded-full border px-3 py-1 text-xs ${className}`}>
-      {children}
     </div>
   )
 }

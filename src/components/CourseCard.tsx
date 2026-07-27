@@ -31,7 +31,7 @@ export default function CourseCard({ course }: CourseCardProps) {
   }
 
   return (
-    <Card className="overflow-hidden border border-white/20 bg-white/80 backdrop-blur-xl rounded-3xl shadow-lg shadow-brand-primary/5 hover:shadow-2xl hover:shadow-brand-primary/20 transition-all duration-500 ease-out hover:-translate-y-2 group flex flex-col h-full relative">
+    <Card className="overflow-hidden border border-white/20 bg-white/80 backdrop-blur-xl rounded-2xl shadow-md shadow-brand-primary/5 hover:shadow-xl hover:shadow-brand-primary/20 transition-all duration-500 ease-out hover:-translate-y-1.5 group flex flex-col h-full relative">
       <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-white/0 pointer-events-none z-0"></div>
       {/* Thumbnail Container */}
       <div className="relative aspect-video w-full overflow-hidden bg-muted">
@@ -39,10 +39,10 @@ export default function CourseCard({ course }: CourseCardProps) {
           src={course.thumbnail_url}
           alt={course.title}
           fill
-          sizes="(max-width: 768px) 100vw, 33vw"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
         />
-        
+
         {/* Wishlist Heart */}
         <button
           onClick={(e) => {
@@ -50,44 +50,45 @@ export default function CourseCard({ course }: CourseCardProps) {
             e.stopPropagation()
             setWishlist(!wishlist)
           }}
-          className="absolute top-4 right-4 z-10 h-8 w-8 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center text-gray-500 hover:text-red-500 shadow-sm border border-gray-100 transition-colors cursor-pointer"
+          aria-label="Add to wishlist"
+          className="absolute top-2.5 right-2.5 z-10 h-7 w-7 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center text-gray-500 hover:text-red-500 shadow-sm border border-gray-100 transition-colors cursor-pointer"
         >
-          <Heart className={`h-4 w-4 transition-transform duration-200 active:scale-95 ${wishlist ? 'fill-red-500 text-red-500' : ''}`} />
+          <Heart className={`h-3.5 w-3.5 transition-transform duration-200 active:scale-95 ${wishlist ? 'fill-red-500 text-red-500' : ''}`} />
         </button>
       </div>
 
       {/* Card Body */}
-      <CardContent className="p-4 flex flex-col flex-1">
+      <CardContent className="p-3.5 flex flex-col flex-1">
         {/* Rating and Duration */}
-        <div className="flex items-center justify-between text-xs text-text-muted mb-3 font-semibold font-sans">
+        <div className="flex items-center justify-between text-[11px] text-text-muted mb-2 font-semibold font-sans">
           <div className="flex items-center gap-1">
             <div className="flex items-center text-brand-accent">
-              <Star className="h-4 w-4 fill-brand-accent" />
+              <Star className="h-3.5 w-3.5 fill-brand-accent" />
             </div>
             <span className="text-brand-dark font-bold">{course.rating.toFixed(1)}</span>
-            <span className="text-gray-400">({course.total_students}+ {t('students_label')})</span>
+            <span className="text-gray-400">({course.total_students}+)</span>
           </div>
-          
-          <div className="flex items-center gap-1.5 text-gray-500 font-medium">
-            <Clock className="h-3.5 w-3.5" />
-            <span>{Math.floor(course.duration_minutes / 60)} {t('hours')} {course.duration_minutes % 60} {t('minutes')}</span>
+
+          <div className="flex items-center gap-1 text-gray-500 font-medium">
+            <Clock className="h-3 w-3" />
+            <span>{Math.floor(course.duration_minutes / 60)}{t('hours')} {course.duration_minutes % 60}{t('minutes')}</span>
           </div>
         </div>
 
         {/* Title */}
-        <h3 className="font-display text-lg font-bold text-brand-dark leading-snug group-hover:text-brand-primary transition-colors line-clamp-2 mb-4">
+        <h3 className="font-display text-sm font-bold text-brand-dark leading-snug group-hover:text-brand-primary transition-colors line-clamp-2 mb-2">
           <Link href={`/courses/${course.slug}/learn`}>
             {course.title}
           </Link>
         </h3>
 
         {/* Description preview */}
-        <p className="text-text-muted text-sm leading-relaxed line-clamp-2 mb-6 font-medium">
+        <p className="text-text-muted text-xs leading-relaxed line-clamp-2 mb-3 font-medium">
           {course.description}
         </p>
 
         {/* Spacer to push CTA to bottom */}
-        <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-end">
+        <div className="mt-auto pt-2.5 border-t border-gray-100 flex items-center justify-end">
           {/* CTA */}
           <Link
             href={

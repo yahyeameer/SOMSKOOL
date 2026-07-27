@@ -28,6 +28,9 @@ const translations: Translations = {
   profile: { en: 'Profile', so: 'Xogta' },
   points: { en: 'Points', so: 'Dhibcaha' },
 
+  // ===== NAVBAR =====
+  empowering_minds: { en: 'Empowering Minds Across Somalia', so: 'Maskaxaha Soomaaliyeed oo Awood Leh' },
+
   // ===== HOMEPAGE =====
   hero_badge: { en: '#1 Learning Platform in Somalia', so: '#1 Barta Waxbarasho ee Soomaaliya' },
   hero_title_1: { en: 'Learn Without', so: 'Baro Xaddid' },
