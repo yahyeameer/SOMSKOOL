@@ -7,7 +7,6 @@ import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import SocialAuthButtons from '@/components/SocialAuthButtons'
 
 const fieldClass =
   'h-11 rounded-lg border-0 bg-[#F4F4F8] px-3.5 text-sm font-medium text-brand-dark placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-brand-primary/40'
@@ -160,11 +159,8 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          {/* Social sign-up */}
-          <SocialAuthButtons label="Or sign up with" onError={setError} />
-
           {/* Login link */}
-          <p className="mt-5 text-center text-sm font-medium text-gray-500">
+          <p className="mt-6 text-center text-sm font-medium text-gray-500">
             Already have an account?{' '}
             <Link href="/login" className="font-bold text-brand-primary hover:underline">
               Login

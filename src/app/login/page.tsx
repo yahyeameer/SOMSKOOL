@@ -7,7 +7,6 @@ import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import SocialAuthButtons from '@/components/SocialAuthButtons'
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -114,11 +113,8 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {/* Social login */}
-          <SocialAuthButtons label="Or login with" onError={setError} />
-
           {/* Sign up */}
-          <p className="mt-5 text-center text-sm font-medium text-gray-500">
+          <p className="mt-6 text-center text-sm font-medium text-gray-500">
             Don&apos;t have an account?{' '}
             <Link href="/register" className="font-bold text-brand-primary hover:underline">
               Sign Up

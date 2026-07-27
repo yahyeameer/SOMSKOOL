@@ -2,8 +2,8 @@
 
 import React, { useState, useTransition } from 'react'
 import { Course, Payment, CourseVideo } from '@/types'
-import { modifyPaymentStatus, submitDocumentUpload, saveVideoSettings, addCourseVideo, deleteCourseVideo } from '@/lib/actions/admin'
-import { extractYoutubeId } from '@/lib/utils'
+import { modifyPaymentStatus, submitDocumentUpload, saveVideoSettings, addCourseVideo, deleteCourseVideo, lookupYoutubeVideo } from '@/lib/actions/admin'
+import { extractYoutubeId, youtubeThumbnail } from '@/lib/utils'
 import { 
   CheckCircle, 
   XCircle, 
@@ -87,6 +87,9 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
   const [moduleCourse, setModuleCourse] = useState(initialCourses[0]?.id || '')
   const [moduleTitle, setModuleTitle] = useState('')
   const [moduleYoutubeId, setModuleYoutubeId] = useState('')
+  // Live preview for the pasted YouTube link
+  const [modulePreview, setModulePreview] = useState<{ videoId: string; title?: string; author?: string; error?: string } | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
   const [modulePoints, setModulePoints] = useState(10)
   const [moduleMessage, setModuleMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [previewVideoId, setPreviewVideoId] = useState<string | null>(null)
@@ -311,6 +314,43 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         alert(res.error || 'Khalad ayaa dhacay.')
       }
     })
+  }
+
+  // Verify a pasted YouTube link and pull its real title so the admin doesn't
+  // have to retype it. Runs on blur/paste rather than every keystroke.
+  const handleYoutubeLookup = async (value: string) => {
+    const trimmed = value.trim()
+    if (!trimmed) {
+      setModulePreview(null)
+      return
+    }
+
+    const videoId = extractYoutubeId(trimmed)
+    if (!videoId) {
+      setModulePreview({ videoId: '', error: 'That is not a valid YouTube link or video ID.' })
+      return
+    }
+
+    setPreviewLoading(true)
+    const res = await lookupYoutubeVideo(trimmed)
+    setPreviewLoading(false)
+
+    if ('error' in res && !('videoId' in res)) {
+      setModulePreview({ videoId, error: res.error })
+      return
+    }
+
+    setModulePreview({
+      videoId,
+      title: 'title' in res ? res.title : undefined,
+      author: 'author' in res ? res.author : undefined,
+      error: 'error' in res ? res.error : undefined,
+    })
+
+    // Auto-fill an empty title with the real video title
+    if ('title' in res && res.title && !moduleTitle.trim()) {
+      setModuleTitle(res.title)
+    }
   }
 
   // Tab 5 Action: Create Module
@@ -1165,13 +1205,18 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="moduleYoutubeId" className="text-xs font-bold text-gray-500 uppercase">YouTube Video ID (11 xaraf)</Label>
+                      <Label htmlFor="moduleYoutubeId" className="text-xs font-bold text-gray-500 uppercase">YouTube Link or Video ID</Label>
                       <Input
                         id="moduleYoutubeId"
                         type="text"
-                        placeholder="e.g. dQw4w9WgXcQ"
+                        placeholder="Paste any YouTube link"
                         value={moduleYoutubeId}
                         onChange={(e) => setModuleYoutubeId(e.target.value)}
+                        onBlur={(e) => handleYoutubeLookup(e.target.value)}
+                        onPaste={(e) => {
+                          const pasted = e.clipboardData.getData('text')
+                          if (pasted) setTimeout(() => handleYoutubeLookup(pasted), 0)
+                        }}
                         className="rounded-xl border-gray-200 font-mono"
                         required
                       />
@@ -1189,6 +1234,38 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                       />
                     </div>
                   </div>
+
+                  {/* Live preview of the pasted link */}
+                  {previewLoading && (
+                    <div className="flex items-center gap-2 text-xs font-semibold text-gray-400">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Checking video…
+                    </div>
+                  )}
+
+                  {!previewLoading && modulePreview && (
+                    modulePreview.error ? (
+                      <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs font-semibold text-amber-700">
+                        <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                        <span>{modulePreview.error}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-4 rounded-xl border border-emerald-100 bg-emerald-50/50 p-3">
+                        <img
+                          src={youtubeThumbnail(modulePreview.videoId)}
+                          alt=""
+                          className="h-16 w-28 rounded-lg object-cover bg-gray-200"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-brand-dark truncate">{modulePreview.title}</p>
+                          {modulePreview.author && (
+                            <p className="text-xs font-medium text-gray-500 truncate">{modulePreview.author}</p>
+                          )}
+                          <p className="mt-0.5 font-mono text-[11px] text-emerald-600">{modulePreview.videoId}</p>
+                        </div>
+                      </div>
+                    )
+                  )}
 
                   <Button
                     type="submit"

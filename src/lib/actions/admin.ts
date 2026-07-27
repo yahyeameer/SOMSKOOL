@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getSessionUser, requireAdmin } from './auth'
 import { revalidatePath } from 'next/cache'
+import { extractYoutubeId } from '@/lib/utils'
 import { Course } from '@/types'
 
 /**
@@ -405,11 +406,11 @@ export async function addCourseVideo(data: { course_id: string, title: string, y
   const user = await getSessionUser()
   if (!user || user.role !== 'admin') return { error: 'Unauthorized' }
 
-  // Extract YouTube ID in case a full URL was pasted
-  let finalYoutubeId = data.youtube_id;
-  const match = finalYoutubeId.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
-  if (match && match[1]) {
-    finalYoutubeId = match[1];
+  // Accept a full YouTube link or a bare id, and reject anything unusable so
+  // we never store a broken value that silently produces a dead embed.
+  const finalYoutubeId = extractYoutubeId(data.youtube_id)
+  if (!finalYoutubeId) {
+    return { success: false, error: 'Could not read a YouTube video ID from that link. Paste a video URL or the 11-character ID.' }
   }
 
   try {
@@ -426,6 +427,48 @@ export async function addCourseVideo(data: { course_id: string, title: string, y
   } catch (err: any) {
     console.error('addCourseVideo error:', err.message)
     return { success: false, error: err.message }
+  }
+}
+
+/**
+ * Looks up a YouTube video's real title from the public oEmbed endpoint so the
+ * admin can paste a link and have the lesson title filled in automatically.
+ * Requires no API key. Returns an error for links that cannot be embedded
+ * (private videos, deleted videos, or embedding disabled by the owner).
+ */
+export async function lookupYoutubeVideo(urlOrId: string) {
+  const user = await getSessionUser()
+  if (!user || user.role !== 'admin') return { error: 'Unauthorized' }
+
+  const videoId = extractYoutubeId(urlOrId)
+  if (!videoId) {
+    return { error: 'Could not read a YouTube video ID from that link.' }
+  }
+
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}&format=json`,
+      { cache: 'no-store' }
+    )
+
+    if (res.status === 401 || res.status === 403) {
+      return {
+        videoId,
+        error: 'This video is private, so it cannot be embedded. Set it to Unlisted on YouTube instead.',
+      }
+    }
+    if (res.status === 404) {
+      return { videoId, error: 'That video does not exist or has been removed.' }
+    }
+    if (!res.ok) {
+      return { videoId, error: 'Could not reach YouTube to verify this video.' }
+    }
+
+    const data = await res.json()
+    return { videoId, title: data.title as string, author: data.author_name as string }
+  } catch {
+    // Network failure shouldn't block adding the lesson manually.
+    return { videoId, error: 'Could not reach YouTube to verify this video.' }
   }
 }
 
