@@ -132,7 +132,7 @@ export default function LearningClient({
     
     startTransition(async () => {
       setMessage(null)
-      const res = await markVideoCompleted(activeVideo.id, course.id, activeVideo.points_awarded)
+      const res = await markVideoCompleted(activeVideo.id, course.id)
       
       if (res.success) {
         if (res.message !== 'Already completed') {

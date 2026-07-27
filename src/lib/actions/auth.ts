@@ -45,6 +45,39 @@ export async function getSessionUser() {
   }
 }
 
+/**
+ * Verifies the caller is an admin using the REAL Supabase session and the
+ * database role — NOT the `somskool_user` cookie (which is client-forgeable).
+ *
+ * Use this to gate any privileged / service-role server action.
+ */
+export async function requireAdmin(): Promise<
+  | { ok: true; userId: string }
+  | { ok: false; error: string }
+> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { ok: false, error: 'Fadlan gal (login) si aad u sii wadato.' }
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.role !== 'admin') {
+      return { ok: false, error: 'Fadlan hubi inaad tahay maamule (admin) si aad u sameyso ficilkan.' }
+    }
+
+    return { ok: true, userId: user.id }
+  } catch {
+    return { ok: false, error: 'Lama xaqiijin karo awoodda maamulka.' }
+  }
+}
+
 export async function signIn(formData: FormData) {
   const rawInput = formData.get('emailOrPhone') as string
   const password = formData.get('password') as string
