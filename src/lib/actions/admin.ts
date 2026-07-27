@@ -430,6 +430,116 @@ export async function addCourseVideo(data: { course_id: string, title: string, y
   }
 }
 
+export interface BulkVideoResult {
+  input: string
+  videoId?: string
+  title?: string
+  status: 'added' | 'invalid' | 'duplicate' | 'unavailable' | 'failed'
+  message?: string
+}
+
+/**
+ * Adds many lessons at once from a block of pasted YouTube links (one per line).
+ *
+ * Each link is parsed, checked against the videos already on the course, and
+ * titled from oEmbed where possible. Bad lines are reported back rather than
+ * aborting the whole batch.
+ */
+export async function addCourseVideosBulk(input: {
+  course_id: string
+  urls: string[]
+  points_awarded: number
+}): Promise<{ results: BulkVideoResult[]; addedCount: number; error?: string }> {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { results: [], addedCount: 0, error: admin.error }
+
+  const lines = input.urls.map(u => u.trim()).filter(Boolean)
+  if (lines.length === 0) {
+    return { results: [], addedCount: 0, error: 'Paste at least one YouTube link.' }
+  }
+
+  try {
+    const supabase = await createClient()
+
+    // Existing videos on this course: used for ordering and duplicate detection.
+    const { data: existing } = await supabase
+      .from('course_videos')
+      .select('youtube_id, order_index')
+      .eq('course_id', input.course_id)
+
+    const seen = new Set((existing || []).map(v => v.youtube_id))
+    let nextIndex = (existing || []).reduce((max, v) => Math.max(max, v.order_index || 0), 0) + 1
+
+    // Resolve titles in parallel — oEmbed is a plain public GET.
+    const parsed = lines.map(line => ({ line, videoId: extractYoutubeId(line) }))
+    const titles = await Promise.all(
+      parsed.map(async p => {
+        if (!p.videoId) return null
+        try {
+          const res = await fetch(
+            `https://www.youtube.com/oembed?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${p.videoId}`)}&format=json`,
+            { cache: 'no-store' }
+          )
+          if (!res.ok) return { unavailable: res.status === 401 || res.status === 403 }
+          const data = await res.json()
+          return { title: data.title as string }
+        } catch {
+          return null
+        }
+      })
+    )
+
+    const results: BulkVideoResult[] = []
+    const toInsert: any[] = []
+
+    parsed.forEach((p, i) => {
+      if (!p.videoId) {
+        results.push({ input: p.line, status: 'invalid', message: 'Not a valid YouTube link.' })
+        return
+      }
+      if (seen.has(p.videoId)) {
+        results.push({ input: p.line, videoId: p.videoId, status: 'duplicate', message: 'Already on this course.' })
+        return
+      }
+
+      const meta = titles[i]
+      if (meta && 'unavailable' in meta && meta.unavailable) {
+        results.push({
+          input: p.line,
+          videoId: p.videoId,
+          status: 'unavailable',
+          message: 'Private or not embeddable — set it to Unlisted on YouTube.',
+        })
+        return
+      }
+
+      const title = meta && 'title' in meta && meta.title ? meta.title : `Lesson ${nextIndex}`
+      seen.add(p.videoId)
+      toInsert.push({
+        course_id: input.course_id,
+        title,
+        youtube_id: p.videoId,
+        points_awarded: input.points_awarded,
+        order_index: nextIndex++,
+      })
+      results.push({ input: p.line, videoId: p.videoId, title, status: 'added' })
+    })
+
+    if (toInsert.length > 0) {
+      const { error } = await supabase.from('course_videos').insert(toInsert)
+      if (error) {
+        return { results: [], addedCount: 0, error: error.message }
+      }
+    }
+
+    revalidatePath('/admin')
+    return { results, addedCount: toInsert.length }
+  } catch (err: any) {
+    console.error('addCourseVideosBulk error:', err.message)
+    return { results: [], addedCount: 0, error: err.message }
+  }
+}
+
 /**
  * Looks up a YouTube video's real title from the public oEmbed endpoint so the
  * admin can paste a link and have the lesson title filled in automatically.

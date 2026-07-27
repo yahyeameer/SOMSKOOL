@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from 'react'
 import { Course, Payment, CourseVideo } from '@/types'
-import { modifyPaymentStatus, submitDocumentUpload, saveVideoSettings, addCourseVideo, deleteCourseVideo, lookupYoutubeVideo } from '@/lib/actions/admin'
+import { modifyPaymentStatus, submitDocumentUpload, saveVideoSettings, addCourseVideo, deleteCourseVideo, lookupYoutubeVideo, addCourseVideosBulk, type BulkVideoResult } from '@/lib/actions/admin'
 import { extractYoutubeId, youtubeThumbnail } from '@/lib/utils'
 import { 
   CheckCircle, 
@@ -90,6 +90,11 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
   // Live preview for the pasted YouTube link
   const [modulePreview, setModulePreview] = useState<{ videoId: string; title?: string; author?: string; error?: string } | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
+  // Bulk paste
+  const [moduleMode, setModuleMode] = useState<'single' | 'bulk'>('single')
+  const [bulkUrls, setBulkUrls] = useState('')
+  const [bulkResults, setBulkResults] = useState<BulkVideoResult[] | null>(null)
+  const [bulkLoading, setBulkLoading] = useState(false)
   const [modulePoints, setModulePoints] = useState(10)
   const [moduleMessage, setModuleMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [previewVideoId, setPreviewVideoId] = useState<string | null>(null)
@@ -350,6 +355,57 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
     // Auto-fill an empty title with the real video title
     if ('title' in res && res.title && !moduleTitle.trim()) {
       setModuleTitle(res.title)
+    }
+  }
+
+  // Tab 5 Action: Add many lessons from pasted links
+  const handleBulkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setModuleMessage(null)
+    setBulkResults(null)
+
+    const urls = bulkUrls.split('\n').map(l => l.trim()).filter(Boolean)
+    if (urls.length === 0) {
+      setModuleMessage({ type: 'error', text: 'Paste at least one YouTube link.' })
+      return
+    }
+
+    setBulkLoading(true)
+    const res = await addCourseVideosBulk({
+      course_id: moduleCourse,
+      urls,
+      points_awarded: modulePoints,
+    })
+    setBulkLoading(false)
+
+    if (res.error) {
+      setModuleMessage({ type: 'error', text: res.error })
+      return
+    }
+
+    setBulkResults(res.results)
+    const skipped = res.results.length - res.addedCount
+    setModuleMessage({
+      type: res.addedCount > 0 ? 'success' : 'error',
+      text: `${res.addedCount} lesson${res.addedCount === 1 ? '' : 's'} added${skipped > 0 ? `, ${skipped} skipped` : ''}.`,
+    })
+
+    if (res.addedCount > 0) {
+      setBulkUrls('')
+      setVideoList(prev => [
+        ...prev,
+        ...res.results
+          .filter(r => r.status === 'added')
+          .map((r, i) => ({
+            id: 'temp-' + Math.random(),
+            course_id: moduleCourse,
+            title: r.title || 'Lesson',
+            youtube_id: r.videoId!,
+            points_awarded: modulePoints,
+            order_index: prev.filter(v => v.course_id === moduleCourse).length + i + 1,
+            created_at: new Date().toISOString(),
+          })) as any,
+      ])
     }
   }
 
@@ -1164,17 +1220,155 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                 <CardTitle className="font-display text-xl font-bold text-brand-dark">Add New Video (Add Course Module)</CardTitle>
                 <CardDescription className="text-gray-400 font-medium">Add video lessons (YouTube URLs) to specific courses and let students track their progress.</CardDescription>
               </CardHeader>
-              <CardContent className="p-6">
-                <form onSubmit={handleModuleSubmit} className="space-y-5">
-                  {moduleMessage && (
-                    <div className={`p-4 rounded-xl flex items-start gap-2.5 text-sm font-semibold ${
-                      moduleMessage.type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-500 border border-red-100'
-                    }`}>
-                      {moduleMessage.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
-                      <span>{moduleMessage.text}</span>
-                    </div>
-                  )}
+              <CardContent className="p-6 space-y-5">
 
+                {/* ── Unlisted vs Private guidance (English + Somali) ── */}
+                <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 space-y-3">
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircle className="h-4.5 w-4.5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div className="space-y-3 text-xs leading-relaxed">
+                      <div>
+                        <p className="font-bold text-amber-900">
+                          Use “Unlisted” videos — “Private” videos will NOT play here.
+                        </p>
+                        <p className="text-amber-800 mt-1">
+                          A <strong>Private</strong> video can only be watched by Google accounts you
+                          invite, and YouTube blocks it from being embedded — students will just see
+                          “Video unavailable”. An <strong>Unlisted</strong> video is hidden from
+                          search and from your channel page, but it still plays inside SomSkool.
+                        </p>
+                        <p className="text-amber-800 mt-1.5">
+                          To change it: YouTube Studio → <em>Content</em> → click the video →
+                          <em> Visibility</em> → choose <strong>Unlisted</strong> → <em>Save</em>.
+                        </p>
+                      </div>
+
+                      <div className="border-t border-amber-200 pt-2.5">
+                        <p className="font-bold text-amber-900">
+                          Isticmaal muuqaallo “Unlisted” ah — kuwa “Private” halkan kama shaqeeyaan.
+                        </p>
+                        <p className="text-amber-800 mt-1">
+                          Muuqaal <strong>Private</strong> ah waxaa daawan kara oo keliya akoonnada
+                          Google ee aad casuunto, YouTube-na wuu diidayaa in la soo dhex geliyo —
+                          ardaydu waxay arki doonaan “Video unavailable”. Muuqaal{' '}
+                          <strong>Unlisted</strong> ah kama muuqdo raadinta iyo boggaaga kanaalka,
+                          laakiin wuu ka shaqeeyaa SomSkool.
+                        </p>
+                        <p className="text-amber-800 mt-1.5">
+                          Sida loo beddelo: YouTube Studio → <em>Content</em> → guji muuqaalka →
+                          <em> Visibility</em> → dooro <strong>Unlisted</strong> → <em>Save</em>.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mode switch */}
+                <div className="inline-flex rounded-xl border border-gray-200 bg-gray-50 p-1">
+                  {([
+                    { id: 'single', label: 'Add one lesson' },
+                    { id: 'bulk', label: 'Paste many links' },
+                  ] as const).map(m => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => { setModuleMode(m.id); setModuleMessage(null); setBulkResults(null) }}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        moduleMode === m.id ? 'bg-white text-brand-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+
+                {moduleMessage && (
+                  <div className={`p-4 rounded-xl flex items-start gap-2.5 text-sm font-semibold ${
+                    moduleMessage.type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-500 border border-red-100'
+                  }`}>
+                    {moduleMessage.type === 'success' ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                    <span>{moduleMessage.text}</span>
+                  </div>
+                )}
+
+                {moduleMode === 'bulk' ? (
+                  <form onSubmit={handleBulkSubmit} className="space-y-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="bulkCourse" className="text-xs font-bold text-gray-500 uppercase">Select Course</Label>
+                        <select
+                          id="bulkCourse"
+                          value={moduleCourse}
+                          onChange={(e) => setModuleCourse(e.target.value)}
+                          className="w-full h-10 px-3 border border-gray-200 text-brand-dark font-medium rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-primary/25 focus:border-brand-primary"
+                        >
+                          {courses.map(c => (
+                            <option key={c.id} value={c.id}>{c.title}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="bulkPoints" className="text-xs font-bold text-gray-500 uppercase">Points per lesson</Label>
+                        <Input
+                          id="bulkPoints"
+                          type="number"
+                          min="0"
+                          value={modulePoints}
+                          onChange={(e) => setModulePoints(parseInt(e.target.value) || 0)}
+                          className="rounded-xl border-gray-200"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="bulkUrls" className="text-xs font-bold text-gray-500 uppercase">
+                        YouTube links — one per line
+                      </Label>
+                      <textarea
+                        id="bulkUrls"
+                        rows={7}
+                        value={bulkUrls}
+                        onChange={(e) => setBulkUrls(e.target.value)}
+                        placeholder={'https://youtu.be/xxxxxxxxxxx\nhttps://www.youtube.com/watch?v=yyyyyyyyyyy\nhttps://www.youtube.com/shorts/zzzzzzzzzzz'}
+                        className="w-full rounded-xl border border-gray-200 p-3 font-mono text-xs text-brand-dark outline-none focus:ring-2 focus:ring-brand-primary/25 focus:border-brand-primary resize-y"
+                      />
+                      <p className="text-[11px] font-medium text-gray-400">
+                        Each lesson is titled automatically from YouTube. Duplicates and private videos are skipped.
+                      </p>
+                    </div>
+
+                    {bulkResults && bulkResults.length > 0 && (
+                      <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+                        {bulkResults.map((r, i) => (
+                          <div key={i} className="flex items-center gap-3 p-2.5 text-xs">
+                            <span className={`px-2 py-0.5 rounded font-bold shrink-0 ${
+                              r.status === 'added' ? 'bg-emerald-50 text-emerald-600'
+                                : r.status === 'duplicate' ? 'bg-gray-100 text-gray-500'
+                                : 'bg-amber-50 text-amber-700'
+                            }`}>
+                              {r.status}
+                            </span>
+                            <span className="font-semibold text-brand-dark truncate flex-1">
+                              {r.title || r.input}
+                            </span>
+                            {r.message && <span className="text-gray-400 truncate hidden sm:block">{r.message}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <Button
+                      type="submit"
+                      disabled={bulkLoading}
+                      className="w-full md:w-auto rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer"
+                    >
+                      {bulkLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" />}
+                      Add All Lessons
+                    </Button>
+                  </form>
+                ) : (
+                <form onSubmit={handleModuleSubmit} className="space-y-5">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <Label htmlFor="moduleCourse" className="text-xs font-bold text-gray-500 uppercase">Select Course</Label>
@@ -1275,6 +1469,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                     Add Lesson
                   </Button>
                 </form>
+                )}
               </CardContent>
             </Card>
 
