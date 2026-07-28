@@ -1,6 +1,9 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin } from './auth'
+import { revalidatePath } from 'next/cache'
 import { Profile } from '@/types'
 
 export async function getLeaderboard() {
@@ -48,15 +51,25 @@ export async function getAllStudents() {
 }
 
 export async function updateStudentPoints(studentId: string, points: number) {
+  // This action had no authorization check at all. The database blocks the write
+  // anyway (RLS plus the profiles column guard), but the gate belongs here too.
+  const admin = await requireAdmin()
+  if (!admin.ok) return { success: false, error: admin.error }
+
+  const safePoints = Math.max(0, Math.floor(Number(points) || 0))
+
   try {
-    const supabase = await createClient()
+    // Points columns are protected by a DB trigger, so this needs the service role.
+    const supabase = createAdminClient()
     const { error } = await supabase
       .from('profiles')
-      .update({ points })
+      .update({ points: safePoints })
       .eq('id', studentId)
 
     if (error) return { success: false, error: error.message }
-    
+
+    revalidatePath('/admin')
+    revalidatePath('/leaderboard')
     return { success: true }
   } catch (err: any) {
     return { success: false, error: err.message }

@@ -157,7 +157,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       if (res.success) {
         setPayments(prev => prev.map(p => p.id === paymentId ? { ...p, status, reject_reason: rejectReason } : p))
       } else {
-        alert(res.error || 'Khalad ayaa ka dhacay ansixinta.')
+        alert(res.error || 'Could not update the payment. Please try again.')
       }
     })
   }
@@ -196,7 +196,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
             course_id: docCourse,
             course_title: matchedCourse ? matchedCourse.title : 'General',
             type: docType,
-            url: docUrl || 'https://somskool.com/uploads/syllabus.pdf',
+            url: finalUrl,
             created_at: new Date().toISOString()
           },
           ...prev
@@ -205,6 +205,22 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         setDocUrl('')
       } else {
         setDocMessage({ type: 'error', text: res.error || 'Something went wrong. Please try again.' })
+      }
+    })
+  }
+
+  const handleDocDelete = (id: string, title: string) => {
+    if (!confirm(`Delete “${title}”? Students will no longer be able to open it.`)) return
+
+    startTransition(async () => {
+      const { deleteDocument } = await import('@/lib/actions/admin')
+      const res = await deleteDocument(id)
+
+      if (res.success) {
+        setDocuments(prev => prev.filter(d => d.id !== id))
+        setDocMessage({ type: 'success', text: 'Document deleted.' })
+      } else {
+        setDocMessage({ type: 'error', text: res.error || 'Could not delete the document.' })
       }
     })
   }
@@ -943,15 +959,24 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                             </div>
                           </div>
                           
-                          <a
-                            href={d.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full sm:w-auto h-9 px-4 rounded-lg bg-gray-50 border border-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
-                          >
-                            <Download className="h-3.5 w-3.5" />
-                            Muuqi Faylka
-                          </a>
+                          <div className="flex w-full sm:w-auto items-center gap-2">
+                            <a
+                              href={d.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex-1 sm:flex-none h-9 px-4 rounded-lg bg-gray-50 border border-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                              View File
+                            </a>
+                            <button
+                              onClick={() => handleDocDelete(d.id, d.title)}
+                              title="Delete document"
+                              className="h-9 w-9 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors inline-flex items-center justify-center shrink-0"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </div>
                       )
                     })}
@@ -1129,7 +1154,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="staffRole" className="text-xs font-bold text-gray-500 uppercase">Nooca Shaqada (Role)</Label>
+                      <Label htmlFor="staffRole" className="text-xs font-bold text-gray-500 uppercase">Role</Label>
                       <select
                         id="staffRole"
                         value={staffRole}
@@ -1184,7 +1209,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                         <tr className="border-b border-gray-100 text-gray-500 text-xs font-bold uppercase tracking-wider">
                           <th className="py-3.5 px-3">Name</th>
                           <th className="py-3.5 px-3">Email</th>
-                          <th className="py-3.5 px-3">Nooca</th>
+                          <th className="py-3.5 px-3">Role</th>
                           <th className="py-3.5 px-3 text-right">Date</th>
                           <th className="py-3.5 px-3 text-right">Action</th>
                         </tr>

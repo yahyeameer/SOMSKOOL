@@ -7,6 +7,17 @@ import { revalidatePath } from 'next/cache'
 import { extractYoutubeId, slugifyTitle } from '@/lib/utils'
 import { Course } from '@/types'
 
+/**
+ * Cryptographically secure password for staff accounts.
+ * Excludes look-alike characters (0/O, 1/l/I) since admins read these aloud.
+ */
+function generateStrongPassword(length = 14): string {
+  const alphabet = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789@#%+='
+  const bytes = new Uint32Array(length)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, b => alphabet[b % alphabet.length]).join('')
+}
+
 /** Public storage bucket that holds admin-uploaded images. */
 const MEDIA_BUCKET = 'media'
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024
@@ -66,10 +77,8 @@ export async function uploadImage(
  * Server action to approve or reject student payment requests.
  */
 export async function modifyPaymentStatus(paymentId: string, status: 'confirmed' | 'failed', reject_reason?: string) {
-  const user = await getSessionUser()
-  if (!user || user.role !== 'admin') {
-    return { error: 'You must be an admin to perform this action.' }
-  }
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
 
   try {
     const supabase = await createClient()
@@ -113,13 +122,15 @@ export async function submitDocumentUpload(docData: {
   type: string;
   url: string;
 }) {
-  const user = await getSessionUser()
-  if (!user || user.role !== 'admin') {
-    return { error: 'You must be an admin to perform this action.' }
-  }
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
 
   if (!docData.title || !docData.courseId || !docData.type) {
     return { error: 'Please fill in all the required fields.' }
+  }
+
+  if (!docData.url?.trim()) {
+    return { error: 'Please provide a file link. Documents without a link cannot be opened by students.' }
   }
 
   try {
@@ -137,12 +148,13 @@ export async function submitDocumentUpload(docData: {
       course_id: docData.courseId,
       course_title: course?.title || 'General',
       type: docData.type,
-      url: docData.url || 'https://somskool.com/uploads/syllabus.pdf'
+      url: docData.url.trim()
     })
 
     if (error) return { error: error.message }
 
     revalidatePath('/admin')
+    revalidatePath('/dashboard')
     return { success: true }
   } catch (err: any) {
     return { error: err.message }
@@ -315,10 +327,8 @@ export async function savePageSettings(settings: {
  * Fetch all staff members (teachers and admins)
  */
 export async function getStaffMembers() {
-  const user = await getSessionUser()
-  if (!user || user.role !== 'admin') {
-    return { error: 'You must be an admin to perform this action.', data: [] }
-  }
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error, data: [] }
 
   try {
     const supabase = await createClient()
@@ -329,7 +339,22 @@ export async function getStaffMembers() {
       .order('created_at', { ascending: false })
 
     if (error) return { error: error.message, data: [] }
-    return { data: data || [] }
+
+    // `profiles` has no email column — the address lives in auth.users, so look
+    // it up separately. Without this the staff list shows "Email missing" for
+    // every row and admins cannot tell which account they are resetting.
+    let emailById = new Map<string, string>()
+    try {
+      const authClient = createAdminClient()
+      const { data: authList } = await authClient.auth.admin.listUsers({ page: 1, perPage: 1000 })
+      emailById = new Map((authList?.users || []).map(u => [u.id, u.email || '']))
+    } catch (err: any) {
+      // Non-fatal: fall back to showing the staff list without emails.
+      console.error('getStaffMembers: could not load emails:', err.message)
+    }
+
+    const withEmails = (data || []).map(p => ({ ...p, email: emailById.get(p.id) || '' }))
+    return { data: withEmails }
   } catch (err: any) {
     return { error: err.message, data: [] }
   }
@@ -421,6 +446,27 @@ export async function getDocuments() {
     return data || []
   } catch {
     return []
+  }
+}
+
+/**
+ * Remove a document from the platform.
+ */
+export async function deleteDocument(id: string) {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { success: false, error: admin.error }
+
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase.from('documents').delete().eq('id', id)
+
+    if (error) return { success: false, error: error.message }
+
+    revalidatePath('/admin')
+    revalidatePath('/dashboard')
+    return { success: true }
+  } catch (err: any) {
+    return { success: false, error: err.message }
   }
 }
 
@@ -868,8 +914,9 @@ export async function regenerateStaffPassword(userId: string) {
   try {
     const adminAuthClient = createAdminClient()
 
-    // Generate a random 8-character password
-    const newPassword = Math.random().toString(36).slice(-8)
+    // Math.random() is not cryptographically secure and must not be used to mint
+    // credentials — use the platform CSPRNG instead.
+    const newPassword = generateStrongPassword()
 
     // Update user password via Admin API
     const { error: updateError } = await adminAuthClient.auth.admin.updateUserById(
