@@ -447,23 +447,30 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
     startTransition(async () => {
       const cleanedId = extractYoutubeId(moduleYoutubeId)
+      // Continue from the highest existing order_index. Counting the videos
+      // instead would reuse a number after any lesson is deleted.
+      const nextIndex = videoList
+        .filter(v => v.course_id === moduleCourse)
+        .reduce((max, v) => Math.max(max, v.order_index || 0), 0) + 1
+
       const res = await addCourseVideo({
         course_id: moduleCourse,
         title: moduleTitle,
         youtube_id: cleanedId,
         points_awarded: modulePoints,
-        order_index: videoList.filter(v => v.course_id === moduleCourse).length + 1
+        order_index: nextIndex
       })
 
       if (res.success) {
-        setModuleMessage({ type: 'success', text: `New module registered!` })
+        const courseName = courses.find(c => c.id === moduleCourse)?.title || 'the course'
+        setModuleMessage({ type: 'success', text: `Lesson added to “${courseName}”.` })
         setVideoList(prev => [...prev, {
           id: 'temp-' + Math.random(),
           course_id: moduleCourse,
           title: moduleTitle,
           youtube_id: res.finalYoutubeId || cleanedId,
           points_awarded: modulePoints,
-          order_index: videoList.filter(v => v.course_id === moduleCourse).length + 1,
+          order_index: nextIndex,
           created_at: new Date().toISOString()
         }])
         setModuleTitle('')
@@ -883,7 +890,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                         className="w-full h-10 px-3 border border-gray-200 text-brand-dark font-medium rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-primary/25 focus:border-brand-primary"
                       >
                         {courses.map(c => (
-                          <option key={c.id} value={c.id}>{c.title}</option>
+                          <option key={c.id} value={c.id}>{c.title}{c.is_published ? '' : '  (hidden)'}</option>
                         ))}
                       </select>
                     </div>
@@ -1344,7 +1351,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                           className="w-full h-10 px-3 border border-gray-200 text-brand-dark font-medium rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-primary/25 focus:border-brand-primary"
                         >
                           {courses.map(c => (
-                            <option key={c.id} value={c.id}>{c.title}</option>
+                            <option key={c.id} value={c.id}>{c.title}{c.is_published ? '' : '  (hidden)'}</option>
                           ))}
                         </select>
                       </div>
@@ -1420,7 +1427,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                         className="w-full h-10 px-3 border border-gray-200 text-brand-dark font-medium rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-primary/25 focus:border-brand-primary"
                       >
                         {courses.map(c => (
-                          <option key={c.id} value={c.id}>{c.title}</option>
+                          <option key={c.id} value={c.id}>{c.title}{c.is_published ? '' : '  (hidden)'}</option>
                         ))}
                       </select>
                     </div>

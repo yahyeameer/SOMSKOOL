@@ -1,7 +1,6 @@
 import React from 'react'
 import { getSessionUser } from '@/lib/actions/auth'
-import { getCourses } from '@/lib/actions/courses'
-import { getStaffMembers, getPayments, getDocuments, getVideoSettings, getAllCourseVideos, getPageSettings, getRoles } from '@/lib/actions/admin'
+import { getStaffMembers, getPayments, getDocuments, getVideoSettings, getAllCourseVideos, getPageSettings, getRoles, getAllCoursesForAdmin } from '@/lib/actions/admin'
 import { getAllStudents } from '@/lib/actions/users'
 import { redirect } from 'next/navigation'
 import AdminPanel from '@/components/AdminPanel'
@@ -14,7 +13,8 @@ export default async function AdminPage() {
     redirect('/login?next=/admin')
   }
 
-  const { data: courses = [] } = await getCourses()
+  // Must include unpublished courses — see getAllCoursesForAdmin.
+  const { data: courses = [] } = await getAllCoursesForAdmin()
   const { data: staff = [] } = await getStaffMembers()
   const { data: students = [] } = await getAllStudents()
   const payments = await getPayments()

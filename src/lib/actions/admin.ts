@@ -711,6 +711,36 @@ export async function deleteCourseVideo(id: string) {
   }
 }
 
+/**
+ * Every course, including unpublished ones.
+ *
+ * The admin console must NOT use getCourses(), which filters to
+ * is_published = true — a hidden course would then vanish from the course list
+ * and from the video/document dropdowns, making it impossible to un-hide or
+ * add lessons to it.
+ */
+export async function getAllCoursesForAdmin(): Promise<{ data: Course[] }> {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { data: [] }
+
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('courses')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('getAllCoursesForAdmin error:', error.message)
+      return { data: [] }
+    }
+    return { data: (data as Course[]) || [] }
+  } catch (err: any) {
+    console.error('getAllCoursesForAdmin exception:', err.message)
+    return { data: [] }
+  }
+}
+
 export async function getAllCourseVideos() {
   const user = await getSessionUser()
   if (!user || user.role !== 'admin') return []
