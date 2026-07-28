@@ -3,7 +3,12 @@
 import React, { useState, useTransition } from 'react'
 import { Course, Payment, CourseVideo } from '@/types'
 import { modifyPaymentStatus, submitDocumentUpload, saveVideoSettings, addCourseVideo, deleteCourseVideo, lookupYoutubeVideo, addCourseVideosBulk, type BulkVideoResult } from '@/lib/actions/admin'
-import { extractYoutubeId, youtubeThumbnail } from '@/lib/utils'
+import { extractYoutubeId, youtubeThumbnail, slugifyTitle } from '@/lib/utils'
+import { ImageUploadField } from '@/components/ImageUploadField'
+
+/** Fallback course art when the admin does not pick a thumbnail. */
+const DEFAULT_COURSE_ART =
+  'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80'
 import { 
   CheckCircle, 
   XCircle, 
@@ -107,7 +112,12 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
   // Tab 7: Course Management
   const [courseTitle, setCourseTitle] = useState('')
   const [courseSlug, setCourseSlug] = useState('')
+  const [courseSlugTouched, setCourseSlugTouched] = useState(false)
   const [coursePrice, setCoursePrice] = useState(0)
+  const [courseDescription, setCourseDescription] = useState('')
+  const [courseLevel, setCourseLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Beginner')
+  const [courseDuration, setCourseDuration] = useState(60)
+  const [courseThumbnail, setCourseThumbnail] = useState('')
   const [courseMessage, setCourseMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   // Tab 8: Pages Management
@@ -194,7 +204,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         setDocTitle('')
         setDocUrl('')
       } else {
-        setDocMessage({ type: 'error', text: res.error || 'Khalad ayaa dhacay.' })
+        setDocMessage({ type: 'error', text: res.error || 'Something went wrong. Please try again.' })
       }
     })
   }
@@ -221,7 +231,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       if (res.success) {
         setVideoMessage({ type: 'success', text: 'YouTube channel settings saved successfully!' })
       } else {
-        setVideoMessage({ type: 'error', text: res.error || 'Khalad ayaa dhacay.' })
+        setVideoMessage({ type: 'error', text: res.error || 'Something went wrong. Please try again.' })
       }
     })
   }
@@ -261,7 +271,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         setStaffEmail('')
         setStaffPassword('')
       } else {
-        setStaffMessage({ type: 'error', text: res.error || 'Khalad ayaa dhacay.' })
+        setStaffMessage({ type: 'error', text: res.error || 'Something went wrong. Please try again.' })
       }
     })
   }
@@ -277,7 +287,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       if (res.success && res.newPassword) {
         setRegeneratedPassword(`The new password for ${userName} is:\n\n${res.newPassword}\n\nPlease copy and share it.`);
       } else {
-        alert(res.error || 'Khalad ayaa dhacay.')
+        alert(res.error || 'Something went wrong. Please try again.')
       }
     })
   }
@@ -301,7 +311,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         setRolesList(prev => [...prev, { id: 'temp-' + Math.random(), name: roleName.trim().toLowerCase(), created_at: new Date().toISOString() }])
         setRoleName('')
       } else {
-        setRoleMessage({ type: 'error', text: res.error || 'Khalad ayaa dhacay.' })
+        setRoleMessage({ type: 'error', text: res.error || 'Something went wrong. Please try again.' })
       }
     })
   }
@@ -316,7 +326,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       if (res.success) {
         setRolesList(prev => prev.filter(r => r.id !== roleId))
       } else {
-        alert(res.error || 'Khalad ayaa dhacay.')
+        alert(res.error || 'Something went wrong. Please try again.')
       }
     })
   }
@@ -443,7 +453,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         setModuleTitle('')
         setModuleYoutubeId('')
       } else {
-        setModuleMessage({ type: 'error', text: res.error || 'Khalad ayaa dhacay.' })
+        setModuleMessage({ type: 'error', text: res.error || 'Something went wrong. Please try again.' })
       }
     })
   }
@@ -455,7 +465,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       if (res.success) {
         setVideoList(prev => prev.filter(v => v.id !== id))
       } else {
-        alert(res.error || 'Khalad ayaa dhacay')
+        alert(res.error || 'Something went wrong. Please try again.')
       }
     })
   }
@@ -469,7 +479,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         setStudents(prev => prev.map(s => s.id === id ? { ...s, points: editingPoints } : s))
         setEditingStudentId(null)
       } else {
-        alert(res.error || 'Khalad ayaa dhacay')
+        alert(res.error || 'Something went wrong. Please try again.')
       }
     })
   }
@@ -479,17 +489,25 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
     e.preventDefault()
     setCourseMessage(null)
 
-    if (!courseTitle || !courseSlug) {
-      setCourseMessage({ type: 'error', text: 'Please fill in the title and slug.' })
+    if (!courseTitle.trim()) {
+      setCourseMessage({ type: 'error', text: 'Please enter a course title.' })
       return
     }
+
+    // The slug is auto-filled from the title unless the admin typed their own.
+    const finalSlug = courseSlug.trim() || slugifyTitle(courseTitle)
+    const finalThumbnail = courseThumbnail.trim() || DEFAULT_COURSE_ART
 
     startTransition(async () => {
       const { createCourse } = await import('@/lib/actions/admin')
       const res = await createCourse({
-        title: courseTitle,
-        slug: courseSlug,
-        price: coursePrice
+        title: courseTitle.trim(),
+        slug: finalSlug,
+        price: coursePrice,
+        description: courseDescription,
+        level: courseLevel,
+        duration_minutes: courseDuration,
+        thumbnail_url: finalThumbnail,
       })
 
       if (res.success) {
@@ -497,25 +515,31 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         // Optimistic UI update
         setCourses(prev => [...prev, {
           id: 'temp-' + Math.random(),
-          title: courseTitle,
-          slug: courseSlug,
+          title: courseTitle.trim(),
+          slug: finalSlug,
+          description: courseDescription,
           price: coursePrice,
           is_free: coursePrice === 0,
-          thumbnail_url: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80',
-          level: 'Beginner',
-          duration_minutes: 60,
+          thumbnail_url: finalThumbnail,
+          level: courseLevel,
+          duration_minutes: courseDuration,
           instructor_name: 'Admin',
           instructor_avatar: '',
           rating: 0,
           total_students: 0,
           is_published: true,
           created_at: new Date().toISOString()
-        }])
+        } as Course])
         setCourseTitle('')
         setCourseSlug('')
+        setCourseSlugTouched(false)
         setCoursePrice(0)
+        setCourseDescription('')
+        setCourseLevel('Beginner')
+        setCourseDuration(60)
+        setCourseThumbnail('')
       } else {
-        setCourseMessage({ type: 'error', text: res.error || 'Khalad ayaa dhacay.' })
+        setCourseMessage({ type: 'error', text: res.error || 'Something went wrong. Please try again.' })
       }
     })
   }
@@ -528,7 +552,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       if (res.success) {
         setCourses(prev => prev.filter(c => c.id !== id))
       } else {
-        alert(res.error || 'Khalad ayaa dhacay')
+        alert(res.error || 'Something went wrong. Please try again.')
       }
     })
   }
@@ -540,7 +564,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       if (res.success) {
         setCourses(prev => prev.map(c => c.id === id ? { ...c, is_published: !currentStatus } : c))
       } else {
-        alert(res.error || 'Khalad ayaa dhacay')
+        alert(res.error || 'Something went wrong. Please try again.')
       }
     })
   }
@@ -573,7 +597,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
       if (res.success) {
         setPageMessage({ type: 'success', text: 'Page content saved successfully!' })
       } else {
-        setPageMessage({ type: 'error', text: res.error || 'Khalad ayaa dhacay' })
+        setPageMessage({ type: 'error', text: res.error || 'Something went wrong. Please try again.' })
       }
     })
   }
@@ -621,7 +645,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
           }`}
         >
           <Video className="h-5 w-5" />
-          <span>Homepage Video</span>
+          <span>Promotional Video</span>
         </button>
 
         <button
@@ -702,7 +726,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         {isPending && (
           <div className="fixed top-4 right-4 bg-brand-primary text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 text-xs font-bold z-50">
             <Loader2 className="h-4 w-4 animate-spin" />
-            Gudbinayaa...
+            Saving…
           </div>
         )}
 
@@ -942,8 +966,8 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
         {activeTab === 'video' && (
           <Card className="border border-border rounded-2xl shadow-sm bg-white overflow-hidden text-left">
             <CardHeader className="border-b border-gray-100 p-6 bg-gray-50/50">
-              <CardTitle className="font-display text-xl font-bold text-brand-dark">YouTube Channel Settings (Promotional Video)</CardTitle>
-              <CardDescription className="text-gray-400 font-medium">Habeey muuqaalka soo jiidashada ah ee lagu soo bandhigayo homepage-ka iyo macluumaadka kanaalkaaga YouTube.</CardDescription>
+              <CardTitle className="font-display text-xl font-bold text-brand-dark">Promotional Video (YouTube Channel Settings)</CardTitle>
+              <CardDescription className="text-gray-400 font-medium">Set the promotional video shown on the homepage, plus your YouTube channel details.</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               <form onSubmit={handleVideoSubmit} className="space-y-5">
@@ -958,16 +982,21 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-1.5 md:col-span-1">
-                    <Label htmlFor="ytId" className="text-xs font-bold text-gray-500 uppercase">YouTube Video ID (11 xaraf)</Label>
+                    <Label htmlFor="ytId" className="text-xs font-bold text-gray-500 uppercase">YouTube Link or Video ID</Label>
                     <Input
                       id="ytId"
                       type="text"
-                      placeholder="e.g. ScMzIvxBSi4"
+                      placeholder="Paste the full YouTube link"
                       value={youtubeId}
                       onChange={(e) => setYoutubeId(e.target.value)}
-                      className="rounded-xl border-gray-200 font-mono font-bold"
+                      className="rounded-xl border-gray-200 font-mono text-sm"
                       required
                     />
+                    {youtubeId && (
+                      extractYoutubeId(youtubeId)
+                        ? <p className="text-[11px] font-semibold text-emerald-600">Video ID detected: {extractYoutubeId(youtubeId)}</p>
+                        : <p className="text-[11px] font-semibold text-red-500">No YouTube video ID found in that text.</p>
+                    )}
                   </div>
                   
                   <div className="space-y-1.5 md:col-span-1">
@@ -996,52 +1025,39 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                   </div>
                 </div>
 
-                {/* NEW: Video title and thumbnail fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="videoTitle" className="text-xs font-bold text-gray-500 uppercase">Video Title / Caption</Label>
-                    <Input
-                      id="videoTitle"
-                      type="text"
-                      placeholder="e.g. Welcome to SomSkool Academy"
-                      value={videoTitle}
-                      onChange={(e) => setVideoTitle(e.target.value)}
-                      className="rounded-xl border-gray-200"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="videoThumbnail" className="text-xs font-bold text-gray-500 uppercase">Custom Thumbnail URL (Image)</Label>
-                    <Input
-                      id="videoThumbnail"
-                      type="url"
-                      placeholder="e.g. https://images.unsplash.com/photo-123..."
-                      value={videoThumbnail}
-                      onChange={(e) => setVideoThumbnail(e.target.value)}
-                      className="rounded-xl border-gray-200"
-                    />
-                  </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="videoTitle" className="text-xs font-bold text-gray-500 uppercase">Video Title / Caption</Label>
+                  <Input
+                    id="videoTitle"
+                    type="text"
+                    placeholder="e.g. Welcome to SomSkool Academy"
+                    value={videoTitle}
+                    onChange={(e) => setVideoTitle(e.target.value)}
+                    className="rounded-xl border-gray-200"
+                  />
                 </div>
 
-                {/* Thumbnail Preview */}
-                {videoThumbnail && (
-                  <div className="rounded-xl overflow-hidden border border-gray-200 max-w-sm">
-                    <img src={videoThumbnail} alt="Thumbnail preview" className="w-full h-40 object-cover" />
-                    <div className="p-2 bg-gray-50 text-xs text-gray-500 font-medium text-center">Thumbnail Preview</div>
-                  </div>
-                )}
+                <ImageUploadField
+                  label="Custom Thumbnail"
+                  value={videoThumbnail}
+                  onChange={setVideoThumbnail}
+                  folder="promo"
+                  hint="Optional — leave empty to use the video's own YouTube thumbnail."
+                />
 
                 <div className="bg-brand-primary/[0.02] border border-brand-primary/10 rounded-xl p-4 space-y-2">
                   <div className="flex items-center gap-2">
                     <Link2 className="h-4 w-4 text-brand-primary" />
-                    <h4 className="text-xs font-bold text-brand-dark uppercase tracking-wider">Detailed tip</h4>
+                    <h4 className="text-xs font-bold text-brand-dark uppercase tracking-wider">Tip</h4>
                   </div>
                   <p className="text-[11px] text-gray-500 font-medium leading-relaxed">
-                    Si aad u hesho Video ID-ga, u fur muuqaalka aad rabto YouTube-ka, ka koobiyeey 11-ka xaraf ee ku jira URL-ka kadib xariiqda <code className="bg-gray-100 px-1 py-0.5 font-mono text-brand-primary">v=</code> (e.g. <code className="bg-gray-100 px-1 py-0.5 font-mono">https://youtube.com/watch?v=ScMzIvxBSi4</code> ID-ga waa <code className="bg-gray-100 px-1 py-0.5 font-mono font-bold text-brand-dark">ScMzIvxBSi4</code>).
+                    Just paste the whole YouTube link — for example <code className="bg-gray-100 px-1 py-0.5 font-mono">https://youtube.com/watch?v=ScMzIvxBSi4</code> — and the video ID is picked out for you. Share links, <code className="bg-gray-100 px-1 py-0.5 font-mono">youtu.be</code> links and Shorts links all work.
                   </p>
                 </div>
 
                 <Button
                   type="submit"
+                  disabled={isPending}
                   className="rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer"
                 >
                   <Video className="h-5 w-5" />
@@ -1077,7 +1093,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                       <Input
                         id="staffName"
                         type="text"
-                        placeholder="e.g. Macalin Xasan"
+                        placeholder="e.g. Hassan Ahmed"
                         value={staffName}
                         onChange={(e) => setStaffName(e.target.value)}
                         className="rounded-xl border-gray-200"
@@ -1121,7 +1137,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                         className="w-full h-10 px-3 border border-gray-200 text-brand-dark font-medium rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-primary/25 focus:border-brand-primary"
                       >
                         {rolesList.length === 0 ? (
-                          <option value="teacher">Macalin (Teacher)</option>
+                          <option value="teacher">Teacher</option>
                         ) : (
                           rolesList.map(r => (
                             <option key={r.id} value={r.name}>{r.name.toUpperCase()}</option>
@@ -1136,7 +1152,7 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                     className="w-full md:w-auto rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer"
                   >
                     <UserPlus className="h-5 w-5" />
-                    Samee Akoonka
+                    Create Account
                   </Button>
                 </form>
               </CardContent>
@@ -1637,25 +1653,33 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                         type="text"
                         placeholder="e.g. Next.js Masterclass"
                         value={courseTitle}
-                        onChange={(e) => setCourseTitle(e.target.value)}
+                        onChange={(e) => {
+                          setCourseTitle(e.target.value)
+                          // Keep the slug in sync until the admin edits it directly.
+                          if (!courseSlugTouched) setCourseSlug(slugifyTitle(e.target.value))
+                        }}
                         className="rounded-xl border-gray-200"
                         required
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="cSlug" className="text-xs font-bold text-gray-500 uppercase">URL Slug</Label>
+                      <Label htmlFor="cSlug" className="text-xs font-bold text-gray-500 uppercase">
+                        URL Slug <span className="text-gray-400 normal-case font-medium">(auto-filled)</span>
+                      </Label>
                       <Input
                         id="cSlug"
                         type="text"
-                        placeholder="e.g. nextjs-masterclass"
+                        placeholder="nextjs-masterclass"
                         value={courseSlug}
-                        onChange={(e) => setCourseSlug(e.target.value)}
-                        className="rounded-xl border-gray-200"
-                        required
+                        onChange={(e) => {
+                          setCourseSlugTouched(true)
+                          setCourseSlug(e.target.value)
+                        }}
+                        className="rounded-xl border-gray-200 font-mono text-sm"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="cPrice" className="text-xs font-bold text-gray-500 uppercase">Qiimaha (Price in $)</Label>
+                      <Label htmlFor="cPrice" className="text-xs font-bold text-gray-500 uppercase">Price in $</Label>
                       <Input
                         id="cPrice"
                         type="number"
@@ -1667,14 +1691,60 @@ export default function AdminPanel({ payments: initialPayments, documents: initi
                         required
                       />
                     </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="cDuration" className="text-xs font-bold text-gray-500 uppercase">Duration (minutes)</Label>
+                      <Input
+                        id="cDuration"
+                        type="number"
+                        min="1"
+                        placeholder="e.g. 120"
+                        value={courseDuration}
+                        onChange={(e) => setCourseDuration(parseInt(e.target.value) || 0)}
+                        className="rounded-xl border-gray-200"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="cLevel" className="text-xs font-bold text-gray-500 uppercase">Level</Label>
+                      <select
+                        id="cLevel"
+                        value={courseLevel}
+                        onChange={(e) => setCourseLevel(e.target.value as 'Beginner' | 'Intermediate' | 'Advanced')}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+                      >
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                      </select>
+                    </div>
                   </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="cDesc" className="text-xs font-bold text-gray-500 uppercase">Description</Label>
+                    <textarea
+                      id="cDesc"
+                      rows={3}
+                      placeholder="A short summary students will see on the course card."
+                      value={courseDescription}
+                      onChange={(e) => setCourseDescription(e.target.value)}
+                      className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-brand-dark placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+                    />
+                  </div>
+
+                  <ImageUploadField
+                    label="Course Thumbnail"
+                    value={courseThumbnail}
+                    onChange={setCourseThumbnail}
+                    folder="courses"
+                    hint="Optional — a default image is used if you skip this. Best at 16:9 (e.g. 1280×720)."
+                  />
 
                   <Button
                     type="submit"
-                    className="w-full md:w-auto rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer"
+                    disabled={isPending}
+                    className="w-full md:w-auto rounded-xl bg-brand-primary hover:bg-brand-primary-dark font-semibold text-white px-8 gap-2 shadow-lg shadow-brand-primary/10 cursor-pointer disabled:opacity-60"
                   >
                     <Plus className="h-5 w-5" />
-                    Samee Course
+                    Create Course
                   </Button>
                 </form>
               </CardContent>

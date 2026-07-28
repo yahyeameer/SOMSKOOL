@@ -5,6 +5,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/** Turns a title into a safe URL slug, so the admin never has to type one. */
+export function slugifyTitle(title: string): string {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 /** A YouTube video id is always exactly 11 URL-safe characters. */
 const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/
 

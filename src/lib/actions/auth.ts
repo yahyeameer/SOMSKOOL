@@ -59,7 +59,7 @@ export async function requireAdmin(): Promise<
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      return { ok: false, error: 'Fadlan gal (login) si aad u sii wadato.' }
+      return { ok: false, error: 'Please log in to continue.' }
     }
 
     const { data: profile } = await supabase
@@ -69,12 +69,12 @@ export async function requireAdmin(): Promise<
       .single()
 
     if (profile?.role !== 'admin') {
-      return { ok: false, error: 'Fadlan hubi inaad tahay maamule (admin) si aad u sameyso ficilkan.' }
+      return { ok: false, error: 'You must be an admin to perform this action.' }
     }
 
     return { ok: true, userId: user.id }
   } catch {
-    return { ok: false, error: 'Lama xaqiijin karo awoodda maamulka.' }
+    return { ok: false, error: 'Could not verify your admin permissions.' }
   }
 }
 

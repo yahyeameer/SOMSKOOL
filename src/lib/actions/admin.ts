@@ -4,8 +4,63 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getSessionUser, requireAdmin } from './auth'
 import { revalidatePath } from 'next/cache'
-import { extractYoutubeId } from '@/lib/utils'
+import { extractYoutubeId, slugifyTitle } from '@/lib/utils'
 import { Course } from '@/types'
+
+/** Public storage bucket that holds admin-uploaded images. */
+const MEDIA_BUCKET = 'media'
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024
+const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif']
+
+/**
+ * Uploads an image from the admin's computer to Supabase Storage and returns
+ * its public URL, so thumbnails no longer have to be pasted in as links.
+ *
+ * `folder` keeps course art and promo art in separate prefixes.
+ */
+export async function uploadImage(
+  formData: FormData,
+  folder: 'courses' | 'promo' = 'courses'
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { success: false, error: admin.error }
+
+  const file = formData.get('file')
+  if (!(file instanceof File) || file.size === 0) {
+    return { success: false, error: 'No image was selected.' }
+  }
+
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return { success: false, error: 'Only PNG, JPG, WEBP, GIF or AVIF images are allowed.' }
+  }
+
+  if (file.size > MAX_IMAGE_BYTES) {
+    return {
+      success: false,
+      error: `That image is ${(file.size / 1024 / 1024).toFixed(1)} MB. The limit is 5 MB — please resize it and try again.`,
+    }
+  }
+
+  try {
+    const storage = createAdminClient()
+    const extension = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '')
+    const key = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extension}`
+
+    const { error: uploadError } = await storage.storage
+      .from(MEDIA_BUCKET)
+      .upload(key, file, { contentType: file.type, upsert: false })
+
+    if (uploadError) {
+      return { success: false, error: `Upload failed: ${uploadError.message}` }
+    }
+
+    const { data } = storage.storage.from(MEDIA_BUCKET).getPublicUrl(key)
+    return { success: true, url: data.publicUrl }
+  } catch (err: any) {
+    console.error('uploadImage error:', err.message)
+    return { success: false, error: 'Could not upload the image. Please try again.' }
+  }
+}
 
 /**
  * Server action to approve or reject student payment requests.
@@ -13,7 +68,7 @@ import { Course } from '@/types'
 export async function modifyPaymentStatus(paymentId: string, status: 'confirmed' | 'failed', reject_reason?: string) {
   const user = await getSessionUser()
   if (!user || user.role !== 'admin') {
-    return { error: 'Fadlan hubi inaad tahay maamule (admin) si aad u sameyso ficilkan.' }
+    return { error: 'You must be an admin to perform this action.' }
   }
 
   try {
@@ -60,11 +115,11 @@ export async function submitDocumentUpload(docData: {
 }) {
   const user = await getSessionUser()
   if (!user || user.role !== 'admin') {
-    return { error: 'Fadlan hubi inaad tahay maamule (admin) si aad u sameyso ficilkan.' }
+    return { error: 'You must be an admin to perform this action.' }
   }
 
   if (!docData.title || !docData.courseId || !docData.type) {
-    return { error: 'Fadlan buuxi dhamaan meelaha banaan.' }
+    return { error: 'Please fill in all the required fields.' }
   }
 
   try {
@@ -104,13 +159,20 @@ export async function saveVideoSettings(settings: {
   video_title: string;
   video_thumbnail_url: string;
 }) {
-  const user = await getSessionUser()
-  if (!user || user.role !== 'admin') {
-    return { error: 'Fadlan hubi inaad tahay maamule (admin) si aad u sameyso ficilkan.' }
-  }
+  const admin = await requireAdmin()
+  if (!admin.ok) return { error: admin.error }
 
   if (!settings.youtube_id || !settings.channel_name) {
-    return { error: 'Muuqaalka YouTube ID iyo magaca kanaalka waa lagama maarmaan.' }
+    return { error: 'The YouTube video link and channel name are both required.' }
+  }
+
+  // Accept a full YouTube link OR a bare 11-character id — the admin should not
+  // have to hand-extract the id from the URL.
+  const youtubeId = extractYoutubeId(settings.youtube_id)
+  if (!youtubeId) {
+    return {
+      error: 'Could not read a YouTube video ID from that link. Paste the video URL or the 11-character ID.',
+    }
   }
 
   try {
@@ -118,7 +180,7 @@ export async function saveVideoSettings(settings: {
     const { error } = await supabase
       .from('video_settings')
       .update({
-        youtube_id: settings.youtube_id,
+        youtube_id: youtubeId,
         channel_name: settings.channel_name,
         channel_url: settings.channel_url || 'https://youtube.com',
         video_title: settings.video_title || '',
@@ -212,7 +274,7 @@ export async function savePageSettings(settings: {
 }) {
   const user = await getSessionUser()
   if (!user || user.role !== 'admin') {
-    return { error: 'Fadlan hubi inaad tahay maamule (admin) si aad u sameyso ficilkan.' }
+    return { error: 'You must be an admin to perform this action.' }
   }
 
   try {
@@ -255,7 +317,7 @@ export async function savePageSettings(settings: {
 export async function getStaffMembers() {
   const user = await getSessionUser()
   if (!user || user.role !== 'admin') {
-    return { error: 'Fadlan hubi inaad tahay maamule (admin) si aad u sameyso ficilkan.', data: [] }
+    return { error: 'You must be an admin to perform this action.', data: [] }
   }
 
   try {
@@ -622,26 +684,46 @@ export async function getAllCourseVideos() {
   }
 }
 
+/** Fallback course art used when the admin does not supply a thumbnail. */
+const DEFAULT_COURSE_THUMBNAIL =
+  'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80'
+
 export async function createCourse(courseData: Partial<Course>) {
+  const admin = await requireAdmin()
+  if (!admin.ok) return { success: false, error: admin.error }
+
   const user = await getSessionUser()
-  if (!user || user.role !== 'admin') return { error: 'Unauthorized' }
+
+  const title = courseData.title?.trim()
+  if (!title) {
+    return { success: false, error: 'Please enter a course title.' }
+  }
+
+  // Slug is optional in the UI — derive it from the title when it is left blank.
+  const slug = (courseData.slug?.trim() || slugifyTitle(title))
+  if (!slug) {
+    return { success: false, error: 'Could not build a URL slug from that title. Please enter one manually.' }
+  }
+
+  const price = Number(courseData.price) || 0
 
   try {
     const supabase = await createClient()
     const { error } = await supabase
       .from('courses')
       .insert({
-        title: courseData.title,
-        slug: courseData.slug,
-        description: courseData.description,
-        thumbnail_url: courseData.thumbnail_url || 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80',
-        price: courseData.price || 0,
-        is_free: courseData.price === 0,
+        title,
+        slug,
+        description: courseData.description?.trim() || '',
+        thumbnail_url: courseData.thumbnail_url?.trim() || DEFAULT_COURSE_THUMBNAIL,
+        price,
+        is_free: price === 0,
         level: courseData.level || 'Beginner',
-        duration_minutes: courseData.duration_minutes || 60,
-        category_slug: courseData.category_slug || 'computer-science',
-        instructor_name: courseData.instructor_name || user.full_name,
-        instructor_avatar: courseData.instructor_avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.full_name,
+        duration_minutes: Number(courseData.duration_minutes) || 60,
+        instructor_name: courseData.instructor_name?.trim() || user?.full_name || 'SomSkool',
+        instructor_avatar:
+          courseData.instructor_avatar ||
+          'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(user?.full_name || 'SomSkool'),
         is_published: true
       })
 
@@ -649,9 +731,21 @@ export async function createCourse(courseData: Partial<Course>) {
 
     revalidatePath('/admin')
     revalidatePath('/courses')
-    return { success: true }
+    revalidatePath('/')
+    return { success: true, slug }
   } catch (err: any) {
-    return { success: false, error: err.message }
+    const message: string = err?.message || 'Could not create the course.'
+
+    // Duplicate slug is by far the most common failure — say so in plain English
+    // instead of leaking the Postgres unique-constraint text.
+    if (/duplicate key|already exists|unique constraint/i.test(message)) {
+      return {
+        success: false,
+        error: `A course with the URL slug “${slug}” already exists. Please choose a different title or slug.`,
+      }
+    }
+
+    return { success: false, error: message }
   }
 }
 

@@ -31,8 +31,9 @@ export interface Course {
   is_free: boolean;
   level: 'Beginner' | 'Intermediate' | 'Advanced';
   duration_minutes: number;
-  category_id?: string;
-  category_slug?: string;
+  // NOTE: there are no category columns on `courses` in the database. Do not
+  // add category_id/category_slug here until a migration actually creates them,
+  // otherwise inserts fail with "Could not find the column in the schema cache".
   instructor_name: string;
   instructor_avatar: string;
   rating: number;
